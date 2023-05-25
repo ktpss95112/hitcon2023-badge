@@ -1,5 +1,5 @@
-from dataclasses import dataclass
 from enum import IntEnum
+from pydantic import BaseModel
 
 
 class UserType(IntEnum):
@@ -8,8 +8,7 @@ class UserType(IntEnum):
     ATTENDEE = 2
 
 
-@dataclass
-class User:
+class User(BaseModel):
     name: str
     card_uid: str  # stores bytes.hex()
     type: UserType = UserType.ATTENDEE

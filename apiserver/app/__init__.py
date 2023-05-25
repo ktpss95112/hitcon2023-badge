@@ -1,12 +1,11 @@
 from fastapi import FastAPI
-
-from .db import DB
 from .router import user
+from .dependency import init_db
 
 app = FastAPI()
 app.include_router(user.router)
 
-# TODO: DB dependency
+init_db()
 
 
 @app.get("/")
