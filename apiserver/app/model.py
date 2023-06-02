@@ -8,6 +8,7 @@ class UserType(IntEnum):
     ATTENDEE = 2
 
 
+# Note: if create new columns, give an initial value as auto migration
 class User(BaseModel):
     name: str
     card_uid: str  # stores bytes.hex()

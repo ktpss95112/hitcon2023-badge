@@ -22,6 +22,8 @@ class DB(abc.ABC):
 
 class FilesystemDB(DB):
     def __init__(self, path: Path):
+        if not path.exists():
+            path.mkdir()
         assert path.is_dir(), f"{path} is not a directory"
         self.path = path
 
