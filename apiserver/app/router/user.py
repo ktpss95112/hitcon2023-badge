@@ -15,3 +15,9 @@ async def read_user(card_uid: str, db: DBDep) -> User:
     if user is None:
         raise HTTPException(404)
     return user
+
+
+# TODO: check permission
+@router.post("/")
+async def write_user(user: User, db: DBDep):
+    await db.write_user(user)
