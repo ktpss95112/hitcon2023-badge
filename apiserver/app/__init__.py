@@ -1,9 +1,10 @@
 from fastapi import FastAPI
-from .router import user
+from .router import user, cardreader
 from .dependency import init_db
 
 app = FastAPI()
 app.include_router(user.router)
+app.include_router(cardreader.router)
 
 init_db()
 
