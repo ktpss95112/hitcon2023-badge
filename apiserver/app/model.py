@@ -27,6 +27,7 @@ class CardReaderType(IntEnum):
     STAFF = 0
     SPONSOR = 1
     POPCAT = 2  # TODO: popcat game
+    SPONSOR_FLUSH = 3
 
 
 class CardReader(BaseModel):
