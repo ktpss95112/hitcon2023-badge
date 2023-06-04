@@ -19,6 +19,9 @@ class User(BaseModel):
         Tuple[datetime, str]
     ] = []  # every item is a time along with a description
 
+    def add_record(self, time: datetime, reader: "CardReader"):
+        self.tap_record.append((datetime.now(), f"tapped {reader.id} ({reader.name})"))
+
 
 class CardReaderType(IntEnum):
     STAFF = 0
