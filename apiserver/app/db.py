@@ -17,6 +17,14 @@ class DB(abc.ABC):
     async def write_user(self, user: User):
         pass
 
+    @abc.abstractmethod
+    async def get_reader_by_id(self, reader_id: str) -> CardReader | None:
+        pass
+
+    @abc.abstractmethod
+    async def write_reader(self, reader: CardReader):
+        pass
+
 
 # TODO (maybe won't do it)
 # class MongoDB(DB):
@@ -64,3 +72,15 @@ class FilesystemDB(DB):
     write_reader = functools.partialmethod(
         default_write, get_filename_from_reader_id, lambda reader: reader.id
     )
+
+
+__db = None
+
+
+def init_db():
+    global __db
+    __db = FilesystemDB(Path(".db"))
+
+
+async def get_db() -> DB:
+    return __db
