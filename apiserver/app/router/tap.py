@@ -47,7 +47,19 @@ async def tap_popcat(user: GetUserDep, reader: GetReaderDep, db: DBDep) -> bool:
 )
 @user_add_record
 async def tap_sponsor_flush_emoji(
-    user: GetUserDep, reader: GetReaderDep, db: DBDep
+    user: GetUserDep,
+    reader: GetReaderDep,
+    db: DBDep,
+    emoji_list: str,
+    show: bool = True,
 ) -> bool:
-    # TODO
+    emoji_list = emoji_list[:10]  # TODO: configurable size of emoji_list
+
+    # If the user simply wants to reset their emoji buffer, do not flush the content to dashboard.
+    if not show:
+        return True
+
+    # TODO: push to frontend?
+    print("received emoji:", repr(emoji_list), flush=True)
+
     return True
