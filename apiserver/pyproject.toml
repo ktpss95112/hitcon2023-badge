@@ -1,0 +1,27 @@
+[project]
+name = "apiserver"
+version = "0.0.0"
+description = "HITCON 2023 badge server"
+authors = [
+    {name = "HITCON CMT 2023", email = "service@hitcon.org"},
+]
+dependencies = [
+    "fastapi[all]>=0.96.0",
+    "aiofiles>=23.1.0",
+    "emoji>=2.4.0",
+]
+requires-python = ">=3.10"
+license = {text = "MIT"}
+
+[tool.pdm.scripts]
+lint = "black ."
+dev = "uvicorn main:app --reload"
+create-db = "python script/create_db.py"
+
+[tool.pdm.dev-dependencies]
+lint = [
+    "black>=23.3.0",
+]
+
+[tool.setuptools]
+py-modules = []

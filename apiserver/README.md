@@ -4,23 +4,37 @@
 
 * Python 3.10.6
 * [virtualenv](https://virtualenv.pypa.io/en/latest/installation.html) 20.23.0
+* [pdm](https://pdm.fming.dev/latest/#recommended-installation-method)
 
-## Dev / Run
+## Run
 
 ```bash
-# first time: create env
+# install dependencies
 cd apiserver
-virtualenv venv
-source venv/bin/activate
-pip3 install -r requirements.txt
-deactivate
+pdm install
 
-# enter env
-source venv/bin/activate  # exit using `deactivate` later
-black . # formatter
-python3 script/create_db.py  # create an example db
-uvicorn main:app --reload
+# start server
+pdm run dev
+```
 
-# exit venv
-deactivate
+## Dev
+
+```bash
+# add dependency
+pdm add xxx
+
+# formatter
+pdm run lint
+
+# run any python scripts
+pdm run python xxx.py
+```
+
+## Optional Commands
+```bash
+# enter virtual env (you don't need to)
+eval `pdm venv activate`
+
+# generate requirements.txt
+pdm export -o requirements.txt --without-hashes
 ```
