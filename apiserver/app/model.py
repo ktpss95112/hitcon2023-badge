@@ -36,5 +36,5 @@ class CardReader(BaseModel):
     name: str
     type: CardReaderType
     time_emoji: List[
-        Tuple[datetime, bytes]
+        Tuple[datetime, str]
     ] = []  # every item is the start time along with the emoji

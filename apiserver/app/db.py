@@ -1,6 +1,6 @@
 import abc
 import functools
-from typing import Callable
+from typing import Callable, List
 from pathlib import Path
 import aiofiles
 from pydantic import BaseModel
@@ -23,6 +23,10 @@ class DB(abc.ABC):
 
     @abc.abstractmethod
     async def write_reader(self, reader: CardReader):
+        pass
+
+    @abc.abstractmethod
+    async def get_all_reader(self) -> List[CardReader]:
         pass
 
 
@@ -51,6 +55,10 @@ class FilesystemDB(DB):
         async with aiofiles.open(filename, "r") as f:
             return model_type.parse_raw(await f.read())
 
+    async def get_reader_from_path(self, file: Path) -> CardReader:
+        async with aiofiles.open(file, "r") as f:
+            return CardReader.parse_raw(await f.read())
+
     async def default_write(
         self, index_to_path: Callable, obj_to_index: Callable, obj: BaseModel
     ):
@@ -72,6 +80,13 @@ class FilesystemDB(DB):
     write_reader = functools.partialmethod(
         default_write, get_filename_from_reader_id, lambda reader: reader.id
     )
+
+    async def get_all_reader(self) -> List[CardReader]:
+        return [
+            await self.get_reader_from_path(file)
+            for file in self.path.iterdir()
+            if file.name.startswith("reader-")
+        ]
 
 
 __db = None
