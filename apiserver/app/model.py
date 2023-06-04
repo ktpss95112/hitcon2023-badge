@@ -30,7 +30,11 @@ class CardReaderType(IntEnum):
     SPONSOR_FLUSH = 3
 
 
+# Note: if create new columns, give an initial value as auto migration
 class CardReader(BaseModel):
     id: str
     name: str
     type: CardReaderType
+    time_emoji: List[
+        Tuple[datetime, bytes]
+    ] = []  # every item is the start time along with the emoji
