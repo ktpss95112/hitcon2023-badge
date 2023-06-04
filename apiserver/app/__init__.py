@@ -1,3 +1,4 @@
+from datetime import datetime
 from fastapi import FastAPI
 from .router import user, cardreader, tap
 from .db import init_db
@@ -13,3 +14,8 @@ init_db()
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
+
+
+@app.get("/time")
+async def get_time() -> datetime:
+    return datetime.now()
