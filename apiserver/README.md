@@ -18,6 +18,7 @@ deactivate
 # enter env
 source venv/bin/activate  # exit using `deactivate` later
 black . # formatter
+python3 script/create_db.py  # create an example db
 uvicorn main:app --reload
 
 # exit venv
