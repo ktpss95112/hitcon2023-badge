@@ -1,7 +1,9 @@
 from datetime import datetime
+
 from fastapi import FastAPI
-from .router import user, cardreader, tap
+
 from .db import init_db
+from .router import cardreader, tap, user
 
 app = FastAPI()
 app.include_router(user.router)

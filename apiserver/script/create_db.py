@@ -1,11 +1,16 @@
 import asyncio
 from datetime import datetime
+
 import emoji
 
-# use the following snippet so that we can run `python3 script/create_db.py` directly
-import sys, os
 
-sys.path.insert(1, os.path.join(sys.path[0], ".."))
+def __inject():
+    # use the following snippet so that we can run `python3 script/create_db.py` directly
+    import os
+    import sys
+    sys.path.insert(1, os.path.join(sys.path[0], ".."))
+
+__inject()
 
 import app.db as db
 import app.model as model

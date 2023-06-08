@@ -1,7 +1,9 @@
-from typing import List, Tuple
 from datetime import datetime
+from typing import List, Tuple
+
 from fastapi import APIRouter
-from ..dependency import GetReaderDep, DBDep
+
+from ..dependency import DBDep, GetReaderDep
 from ..model import CardReader
 
 router = APIRouter(

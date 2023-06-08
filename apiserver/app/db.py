@@ -1,11 +1,12 @@
 import abc
 import functools
-from typing import Callable, List
 from pathlib import Path
+from typing import Callable, List
+
 import aiofiles
 from pydantic import BaseModel
 
-from .model import User, CardReader
+from .model import CardReader, User
 
 
 class DB(abc.ABC):

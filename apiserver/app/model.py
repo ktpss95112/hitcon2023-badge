@@ -1,6 +1,7 @@
 from datetime import datetime
 from enum import IntEnum
 from typing import List, Tuple
+
 from pydantic import BaseModel
 
 
