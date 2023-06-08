@@ -10,15 +10,16 @@ namespace card {
 	}
 
 	bool legal_new_card() {
+		MFRC522::PICC_Type picc_type;
 		if (!mfrc522.PICC_IsNewCardPresent())
 			return false;
 		if (!mfrc522.PICC_ReadCardSerial())
 			return false;
 
-		MFRC522::PICC_Type piccType = mfrc522.PICC_GetType(mfrc522.uid.sak);
-		if (piccType != MFRC522::PICC_TYPE_MIFARE_MINI &&
-			piccType != MFRC522::PICC_TYPE_MIFARE_1K &&
-			piccType != MFRC522::PICC_TYPE_MIFARE_4K)
+		picc_type = mfrc522.PICC_GetType(mfrc522.uid.sak);
+		if (picc_type != MFRC522::PICC_TYPE_MIFARE_MINI &&
+			picc_type != MFRC522::PICC_TYPE_MIFARE_1K &&
+			picc_type != MFRC522::PICC_TYPE_MIFARE_4K)
 			return false;
 
 		return true;
@@ -30,7 +31,10 @@ namespace card {
 	 */
 	static bool auth_b(byte blockaddr) {
 		MFRC522::StatusCode status;
-		status = mfrc522.PCD_Authenticate(MFRC522::PICC_CMD_MF_AUTH_KEY_B, blockaddr, &default_key, &mfrc522.uid);
+		status = mfrc522.PCD_Authenticate(
+			MFRC522::PICC_CMD_MF_AUTH_KEY_B,
+			blockaddr, &default_key, &mfrc522.uid
+		);
 		return status == MFRC522::STATUS_OK;
 	}
 
@@ -42,7 +46,7 @@ namespace card {
 		if (block_untrans <= 1)
 			return block_untrans + 1;
 		block_untrans -= 2;
-		return 4 * (block_untrans/3+1) + block_untrans%3;
+		return 4 * (block_untrans / 3 + 1) + block_untrans % 3;
 	}
 	
 	/*
@@ -123,6 +127,9 @@ namespace card {
 		return status == MFRC522::STATUS_OK;
 	}
 
+	/*
+	 * Same as `pwrite` in libc but without `fildes`.
+	 */
 	int pwrite(byte *buf, int nbyte, int offset) {
 		bool res;
 		byte to_write;
