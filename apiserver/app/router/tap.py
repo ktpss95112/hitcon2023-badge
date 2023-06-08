@@ -1,9 +1,11 @@
-from datetime import datetime
 import functools
+from datetime import datetime
+
 from fastapi import APIRouter
-from ..dependency import DBDep, GetUserDep, GetReaderDep, CheckCardReaderTypeDep
-from ..model import User, CardReader, CardReaderType
+
 from ..db import DB
+from ..dependency import CheckCardReaderTypeDep, DBDep, GetReaderDep, GetUserDep
+from ..model import CardReader, CardReaderType, User
 
 router = APIRouter(
     prefix="/tap",

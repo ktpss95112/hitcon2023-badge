@@ -14,13 +14,14 @@ requires-python = ">=3.10"
 license = {text = "MIT"}
 
 [tool.pdm.scripts]
-lint = "black ."
+lint = "isort --profile black && black ."
 dev = "uvicorn main:app --reload"
 create-db = "python script/create_db.py"
 
 [tool.pdm.dev-dependencies]
 lint = [
     "black>=23.3.0",
+    "isort>=5.12.0",
 ]
 
 [tool.setuptools]

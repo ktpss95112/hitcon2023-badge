@@ -1,8 +1,9 @@
 from typing import Annotated
-from fastapi import Depends, HTTPException
-from .db import DB, get_db
-from .model import User, CardReader, CardReaderType
 
+from fastapi import Depends, HTTPException
+
+from .db import DB, get_db
+from .model import CardReader, CardReaderType, User
 
 DBDep = Annotated[DB, Depends(get_db)]
 

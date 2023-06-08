@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+
 from ..dependency import DBDep, GetUserDep
 from ..model import User
 
