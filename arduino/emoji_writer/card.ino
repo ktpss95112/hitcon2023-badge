@@ -1,3 +1,5 @@
+#include "card.h"
+
 namespace card {
 	void setup() {
 		Serial.println(F("Setting up mfrc522..."));
