@@ -4,11 +4,12 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
 #include <WiFiClientSecureBearSSL.h>
+#include "config.h"
 
 namespace wifi {
-	static const char *ssid = "aoaaeria";
-	static const char *password = "qwfkcwfduqbz";
-	static const char *hostname = "aoaauino";
+	static const char *ssid = WIFI_SSID;
+	static const char *password = WIFI_PASSWD;
+	static const char *hostname = WIFI_HOSTNAME;
 
 	void setup();
 };

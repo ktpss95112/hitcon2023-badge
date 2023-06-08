@@ -13,8 +13,6 @@ void setup() {
 	Serial.begin(9600);
 	wifi::setup();
 	card::setup();
-	
-	// read_emoji_list();
 }
 
 void loop() {

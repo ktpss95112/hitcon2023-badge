@@ -1,3 +1,5 @@
+#include "wifi.h"
+
 namespace wifi {
 	void setup() {
 		WiFi.hostname(hostname);
