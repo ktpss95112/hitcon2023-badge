@@ -2,8 +2,6 @@
 #define _WIFI_H
 
 #include <ESP8266WiFi.h>
-#include <ESP8266HTTPClient.h>
-#include <WiFiClientSecureBearSSL.h>
 #include "config.h"
 
 namespace wifi {

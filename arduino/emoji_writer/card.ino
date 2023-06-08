@@ -158,4 +158,4 @@ namespace card {
 
 		return nbyte - remaining;
 	}
-};
+}
