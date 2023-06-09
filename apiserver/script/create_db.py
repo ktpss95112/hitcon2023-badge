@@ -8,7 +8,9 @@ def __inject():
     # use the following snippet so that we can run `python3 script/create_db.py` directly
     import os
     import sys
+
     sys.path.insert(1, os.path.join(sys.path[0], ".."))
+
 
 __inject()
 

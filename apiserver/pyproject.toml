@@ -14,7 +14,7 @@ requires-python = ">=3.10"
 license = {text = "MIT"}
 
 [tool.pdm.scripts]
-lint = "isort --profile black && black ."
+lint = {composite = ["isort --profile black .", "black ."]}
 dev = "uvicorn main:app --reload"
 staging = "uvicorn --host 0.0.0.0 --port 53885 main:app --reload"
 create-db = "python script/create_db.py"
