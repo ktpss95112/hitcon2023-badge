@@ -13,8 +13,11 @@
 cd apiserver
 pdm install
 
-# start server
+# start local dev server
 pdm run dev
+
+# run staging server
+pdm run staging
 ```
 
 ## Dev
