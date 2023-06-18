@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import List, Tuple
 
 from fastapi import APIRouter
 
@@ -13,7 +12,7 @@ router = APIRouter(
 
 
 @router.get("/emoji_time_table")
-async def get_emoji_time_table(db: DBDep) -> List[Tuple[str, datetime, str]]:
+async def get_emoji_time_table(db: DBDep) -> list[tuple[str, datetime, str]]:
     """
     The returned list is composed of many items.
     Each item is composed of (reader_id, start_time, emoji).
@@ -22,19 +21,19 @@ async def get_emoji_time_table(db: DBDep) -> List[Tuple[str, datetime, str]]:
     return [
         (reader.id, dt, emoji)
         for reader in reader_list
-        for dt, emoji in reader.time_emoji
+        for dt, emoji in sorted(reader.time_emoji)
     ]
 
 
 @router.get("/emoji_time_table/{reader_id}")
 async def get_emoji_time_table_of_reader(
     reader: GetReaderDep, db: DBDep
-) -> List[Tuple[datetime, str]]:
+) -> list[tuple[datetime, str]]:
     """
     The returned list is composed of many items.
     Each item is composed of (start_time, emoji).
     """
-    return [(dt, emoji) for dt, emoji in reader.time_emoji]
+    return [(dt, emoji) for dt, emoji in sorted(reader.time_emoji)]
 
 
 # TODO: check permission
