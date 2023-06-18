@@ -18,6 +18,7 @@ lint = {composite = ["isort --profile black .", "black ."]}
 dev = "uvicorn main:app --reload"
 staging = "uvicorn --host 0.0.0.0 --port 53885 main:app --reload"
 create-db = "python script/create_db.py"
+build-docs = "python -m script.build_docs"
 
 [tool.pdm.dev-dependencies]
 lint = [
