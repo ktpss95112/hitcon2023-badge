@@ -2,6 +2,7 @@
 #define _GAME_H
 
 #include <WiFiClientSecureBearSSL.h>
+#include "config.h"
 
 
 namespace game {
