@@ -12,7 +12,7 @@ def main():
     out_dir = Path("build")
     if not out_dir.exists():
         out_dir.mkdir()
-    with Path(out_dir, "openaip.json").open("w") as f:
+    with Path(out_dir, "openapi.json").open("w") as f:
         json.dump(
             get_openapi(
                 title=app.title,
