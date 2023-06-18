@@ -34,11 +34,20 @@ namespace game {
 		return true;
 	}
 
-	static void store_one_emoji(const JsonVariant &doc) {
-		const char *datetime_str = doc[1];
+	static time_t str_to_epoch(const char *str) {
 		tm datetime {0};
-		strptime(datetime_str, "%FT%T.", &datetime);
-		/* TODO: store it somewhere in the memory */
+		strptime(str, "%FT%T.", &datetime);
+		return mktime(&datetime);
+	}
+
+	static void push_one_emoji(const JsonVariant &doc) {
+		const char *starttime_str = doc[0];
+		const char *emoji_str = doc[1];
+		time_t starttime = str_to_epoch(starttime_str);
+		emoji_timetable *cur = new emoji_timetable(
+			starttime, emoji_str, emoji_timetable_head
+		);
+		emoji_timetable_head = cur;
 	}
 
 	static bool read_timetable() {
@@ -48,14 +57,36 @@ namespace game {
 			return false;
 
 		n = doc.size();
-		for (i = 0; i < n; ++i)
-			store_one_emoji(doc[i]);
+		/*
+		 * Since the timetable in the server is in ascending order,
+		 * we reverse it here so the head is the earliest entry.
+		 */
+		for (i = n-1; i >= 0; --i)
+			push_one_emoji(doc[i]);
+		return true;
+	}
+
+	static bool sync_clock() {
+		DynamicJsonDocument doc(48);
+		if (!get_json(doc, current_time_path))
+			return false;
+		String datetime_str = doc.as<String>();
+		time_t now = str_to_epoch(datetime_str.c_str());
+		clock_offset = now - clock();
+		clock_last_update = clock();
 		return true;
 	}
 
 	void setup() {
 		wifi_client.setClientRSACert(&client_cert, &client_key);
 		wifi_client.setFingerprint(host_fingerprint);
-		read_timetable();
+		if (!sync_clock()) {
+			Serial.println("clock synchronization failed");
+			return;
+		}
+		if (!read_timetable()) {
+			Serial.println("time table read failed");
+			return;
+		}
 	}
 }
