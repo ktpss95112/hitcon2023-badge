@@ -26,6 +26,13 @@ async def get_emoji_time_table(db: DBDep) -> List[Tuple[str, datetime, str]]:
     ]
 
 
+@router.get("/emoji_time_table/{reader_id}")
+async def get_emoji_time_table_of_reader(
+    reader: GetReaderDep, db: DBDep
+) -> List[Tuple[str, datetime, str]]:
+    return [(reader.id, dt, emoji) for dt, emoji in reader.time_emoji]
+
+
 # TODO: check permission
 @router.get("/{reader_id}")
 async def get_reader(reader: GetReaderDep) -> CardReader:
