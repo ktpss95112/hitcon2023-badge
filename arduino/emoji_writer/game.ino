@@ -34,7 +34,7 @@ namespace game {
 		return true;
 	}
 
-	static void store_one_emoji(const DynamicJsonDocument &doc) {
+	static void store_one_emoji(const JsonVariant &doc) {
 		const char *datetime_str = doc[1];
 		tm datetime {0};
 		strptime(datetime_str, "%FT%T.", &datetime);
