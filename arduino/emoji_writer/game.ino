@@ -54,6 +54,7 @@ namespace game {
 	}
 
 	void setup() {
+		wifi_client.setClientRSACert(&client_cert, &client_key);
 		wifi_client.setFingerprint(host_fingerprint);
 		read_timetable();
 	}
