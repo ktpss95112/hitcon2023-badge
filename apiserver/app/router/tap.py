@@ -38,9 +38,33 @@ async def tap_sponsor(user: GetUserDep, reader: GetReaderDep, db: DBDep) -> bool
     dependencies=[CheckCardReaderTypeDep(CardReaderType.POPCAT)],
 )
 @user_add_record
-async def tap_popcat(user: GetUserDep, reader: GetReaderDep, db: DBDep) -> bool:
-    # TODO
-    return True
+async def tap_popcat(
+    user: GetUserDep, reader: GetReaderDep, db: DBDep, incr: int
+) -> tuple[bool, int]:
+    """
+    The returned boolean indicates whether the submit is successful.
+    The returned integer indicates the cooldown of the next tapping.
+    """
+
+    record = await db.get_popcat_by_card_uid(user)
+
+    # check whether the user taps too fast
+    # TODO: configurable interval
+    COOLDOWN = 120
+    now = datetime.now()
+    cooldown = (
+        COOLDOWN - int((now - max(record.record)[0]).total_seconds())
+        if record.record
+        else 0
+    )
+    if cooldown > 0:
+        return False, cooldown
+
+    # TODO: be aware that the validity of incr is not checked
+    record.add_record(datetime.now(), incr)
+    await db.write_popcat(record)
+
+    return True, COOLDOWN
 
 
 @router.post(

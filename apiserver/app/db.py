@@ -6,7 +6,7 @@ from typing import Callable, List
 import aiofiles
 from pydantic import BaseModel
 
-from .model import CardReader, User
+from .model import CardReader, PopcatRecord, User
 
 
 class DB(abc.ABC):
@@ -27,7 +27,15 @@ class DB(abc.ABC):
         pass
 
     @abc.abstractmethod
-    async def get_all_reader(self) -> List[CardReader]:
+    async def get_all_reader(self) -> list[CardReader]:
+        pass
+
+    @abc.abstractmethod
+    async def get_popcat_by_card_uid(self, user: User) -> PopcatRecord:
+        pass
+
+    @abc.abstractmethod
+    async def write_popcat(self, record: PopcatRecord):
         pass
 
 
@@ -43,11 +51,14 @@ class FilesystemDB(DB):
         assert path.is_dir(), f"{path} is not a directory"
         self.path = path
 
-    def get_filename_from_card_uid(self, card_uid):
+    def get_filename_from_card_uid(self, card_uid: str):
         return self.path / f"user-{card_uid}.json"
 
-    def get_filename_from_reader_id(self, reader_id):
+    def get_filename_from_reader_id(self, reader_id: str):
         return self.path / f"reader-{reader_id}.json"
+
+    def get_filename_for_popcat(self, card_uid: str):
+        return self.path / f"popcat-{card_uid}.json"
 
     async def default_read(self, model_type: BaseModel, index_to_path: Callable, index):
         filename = index_to_path(self, index)
@@ -82,7 +93,20 @@ class FilesystemDB(DB):
         default_write, get_filename_from_reader_id, lambda reader: reader.id
     )
 
-    async def get_all_reader(self) -> List[CardReader]:
+    async def get_popcat_by_card_uid(self, user: User) -> PopcatRecord:
+        ret = await self.default_read(
+            PopcatRecord, self.__class__.get_filename_for_popcat, user.card_uid
+        )
+        # If the record is not created before, create it.
+        if ret is None:
+            ret = PopcatRecord(card_uid=user.card_uid)
+        return ret
+
+    write_popcat = functools.partialmethod(
+        default_write, get_filename_for_popcat, lambda record: record.card_uid
+    )
+
+    async def get_all_reader(self) -> list[CardReader]:
         return [
             await self.get_reader_from_path(file)
             for file in self.path.iterdir()
