@@ -1,6 +1,5 @@
 from datetime import datetime
 from enum import IntEnum
-from typing import List, Tuple
 
 from pydantic import BaseModel
 
@@ -16,8 +15,8 @@ class User(BaseModel):
     name: str
     card_uid: str  # stores bytes.hex()
     type: UserType = UserType.ATTENDEE
-    tap_record: List[
-        Tuple[datetime, str]
+    tap_record: list[
+        tuple[datetime, str]
     ] = []  # every item is a time along with a description
 
     def add_record(self, time: datetime, reader: "CardReader"):
@@ -36,6 +35,16 @@ class CardReader(BaseModel):
     id: str
     name: str
     type: CardReaderType
-    time_emoji: List[
-        Tuple[datetime, str]
+    time_emoji: list[
+        tuple[datetime, str]
     ] = []  # every item is the start time along with the emoji
+
+
+class PopcatRecord(BaseModel):
+    card_uid: str
+    record: list[
+        tuple[datetime, int]
+    ] = []  # every item is the tap time and the increment of his score
+
+    def add_record(self, time: datetime, incr: int):
+        self.record.append((time, incr))
