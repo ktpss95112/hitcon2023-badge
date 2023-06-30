@@ -1,12 +1,14 @@
 import abc
+import atexit
 import functools
+import sys
 from pathlib import Path
 from typing import Callable
-import sys
 
 import aiofiles
+import docker
+import docker.errors
 from pydantic import BaseModel
-import docker, docker.errors
 
 from .model import CardReader, PopcatRecord, User
 
@@ -136,17 +138,20 @@ def __new_mongodb() -> MongoDB:
     # currently only support local docker MongoDB
     client = docker.from_env()
     container_name = "apiserver-mongodb"
-    image_name = 'mongo'
-    image_tag = '6.0.6'
+    image_name = "mongo"
+    image_tag = "6.0.6"
     try:
         container = client.containers.get(container_name)
     except docker.errors.NotFound:
-        print('mongo image not found, pulling and creating ...', file=sys.stderr)
+        print("mongo image not found, pulling and creating ...", file=sys.stderr)
         client.images.pull(image_name, image_tag)
-        container = client.containers.create(f'{image_name}:{image_tag}', ports={27017: 27017})
+        container = client.containers.create(
+            f"{image_name}:{image_tag}", ports={27017: 27017}
+        )
         container.rename(container_name)
 
     container.start()
+    atexit.register(container.stop)
 
     return MongoDB()
 
@@ -154,7 +159,6 @@ def __new_mongodb() -> MongoDB:
 def init_db():
     global __db
     __db = __new_mongodb()
-
 
 
 async def get_db() -> DB:
