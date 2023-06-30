@@ -1,7 +1,7 @@
 import abc
 import functools
 from pathlib import Path
-from typing import Callable, List
+from typing import Callable
 
 import aiofiles
 from pydantic import BaseModel
@@ -38,6 +38,10 @@ class DB(abc.ABC):
     async def write_popcat(self, record: PopcatRecord):
         pass
 
+    @abc.abstractmethod
+    async def get_all_popcat(self) -> list[PopcatRecord]:
+        pass
+
 
 # TODO (maybe won't do it)
 # class MongoDB(DB):
@@ -67,9 +71,9 @@ class FilesystemDB(DB):
         async with aiofiles.open(filename, "r") as f:
             return model_type.parse_raw(await f.read())
 
-    async def get_reader_from_path(self, file: Path) -> CardReader:
+    async def get_obj_from_path(self, file: Path, type_: BaseModel):
         async with aiofiles.open(file, "r") as f:
-            return CardReader.parse_raw(await f.read())
+            return type_.parse_raw(await f.read())
 
     async def default_write(
         self, index_to_path: Callable, obj_to_index: Callable, obj: BaseModel
@@ -108,9 +112,16 @@ class FilesystemDB(DB):
 
     async def get_all_reader(self) -> list[CardReader]:
         return [
-            await self.get_reader_from_path(file)
+            await self.get_obj_from_path(file, CardReader)
             for file in self.path.iterdir()
             if file.name.startswith("reader-")
+        ]
+
+    async def get_all_popcat(self) -> list[PopcatRecord]:
+        return [
+            await self.get_obj_from_path(file, PopcatRecord)
+            for file in self.path.iterdir()
+            if file.name.startswith("popcat-")
         ]
 
 

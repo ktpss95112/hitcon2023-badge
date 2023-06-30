@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import Depends, HTTPException
 
 from .db import DB, get_db
-from .model import CardReader, CardReaderType, User
+from .model import CardReader, CardReaderType, PopcatRecord, User
 
 DBDep = Annotated[DB, Depends(get_db)]
 
@@ -41,3 +41,13 @@ class __CheckCardReaderType:
 
 
 CheckCardReaderTypeDep = lambda type: Depends(__CheckCardReaderType(type))
+
+
+async def __get_popcat(user: GetUserDep, db: DBDep) -> PopcatRecord:
+    record = await db.get_popcat_by_card_uid(user)
+    if record is None:
+        raise HTTPException(404, "No popcat record found.")
+    return record
+
+
+GetPopcatDep = Annotated[PopcatRecord, Depends(__get_popcat)]
