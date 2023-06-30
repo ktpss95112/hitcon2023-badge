@@ -19,6 +19,7 @@ class User(BaseModel):
         tuple[datetime, str]
     ] = []  # every item is a time along with a description
 
+    # TODO: move the tap_record outside the class and make a new class TapRecord
     def add_record(self, time: datetime, reader: "CardReader"):
         self.tap_record.append((datetime.now(), f"tapped {reader.id} ({reader.name})"))
 
@@ -48,3 +49,7 @@ class PopcatRecord(BaseModel):
 
     def add_record(self, time: datetime, incr: int):
         self.record.append((time, incr))
+
+    def get_score(self) -> int:
+        # TODO: maybe sum the records which lie within a specific time interval
+        return sum(incr for time, incr in self.record)
