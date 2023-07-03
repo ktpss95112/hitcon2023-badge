@@ -4,11 +4,11 @@ import functools
 import sys
 from pathlib import Path
 from typing import Callable
+from urllib.parse import quote_plus
 
 import aiofiles
-import docker
-import docker.errors
 from pydantic import BaseModel
+from pymongo import MongoClient
 
 from .model import CardReader, PopcatRecord, User
 
@@ -48,7 +48,50 @@ class DB(abc.ABC):
 
 
 class MongoDB(DB):
-    pass
+    def __init__(self, client: MongoClient) -> None:
+        self.__client = client
+
+        # TODO: configurable db/collection name
+        self.__db = self.__client["badge"]
+        self.__user_table = self.__db["user"]
+        self.__card_reader_table = self.__db["card-reader"]
+        self.__popcat_record_table = self.__db["popcat-record"]
+
+    async def get_user_by_card_uid(self, card_uid: str) -> User | None:
+        obj = self.__user_table.find_one({"card_uid": card_uid})
+        if obj is None:
+            return None
+        return User.parse_obj(obj)
+
+    async def write_user(self, user: User):
+        self.__user_table.insert_one(dict(user))
+
+    async def get_reader_by_id(self, reader_id: str) -> CardReader | None:
+        obj = self.__card_reader_table.find_one({"id": reader_id})
+        if obj is None:
+            return None
+        return CardReader.parse_obj(obj)
+
+    async def write_reader(self, reader: CardReader):
+        self.__card_reader_table.insert_one(dict(reader))
+
+    async def get_all_reader(self) -> list[CardReader]:
+        return [CardReader.parse_obj(obj) for obj in self.__card_reader_table.find()]
+
+    async def get_popcat_by_card_uid(self, user: User) -> PopcatRecord:
+        obj = self.__popcat_record_table.find_one({"card_uid": user.card_uid})
+        if obj is None:
+            # If the record is not created before, create it.
+            return PopcatRecord(card_uid=user.card_uid)
+        return PopcatRecord.parse_obj(obj)
+
+    async def write_popcat(self, record: PopcatRecord):
+        self.__popcat_record_table.insert_one(dict(record))
+
+    async def get_all_popcat(self) -> list[PopcatRecord]:
+        return [
+            PopcatRecord.parse_obj(obj) for obj in self.__popcat_record_table.find()
+        ]
 
 
 # class FilesystemDB(DB):
@@ -133,27 +176,13 @@ __db = None
 
 def __new_mongodb() -> MongoDB:
     # TODO: configurable connection info
-    # TODO: remote connection
 
-    # currently only support local docker MongoDB
-    client = docker.from_env()
-    container_name = "apiserver-mongodb"
-    image_name = "mongo"
-    image_tag = "6.0.6"
-    try:
-        container = client.containers.get(container_name)
-    except docker.errors.NotFound:
-        print("mongo image not found, pulling and creating ...", file=sys.stderr)
-        client.images.pull(image_name, image_tag)
-        container = client.containers.create(
-            f"{image_name}:{image_tag}", ports={27017: 27017}
-        )
-        container.rename(container_name)
+    db_username = "root"
+    db_password = "example"
+    db_host = "localhost:27017"
+    client = MongoClient(db_host, username=db_username, password=db_password)
 
-    container.start()
-    atexit.register(container.stop)
-
-    return MongoDB()
+    return MongoDB(client=client)
 
 
 def init_db():
