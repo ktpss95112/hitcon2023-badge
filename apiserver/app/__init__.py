@@ -1,2 +1,2 @@
-from . import db, dependency, model, router
+from . import config, db, dependency, model, router
 from .main import app

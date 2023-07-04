@@ -14,6 +14,7 @@ cd apiserver
 pdm install
 
 # start local dev server
+cp .env.example .env  # and do some modification if needed
 pdm run dev
 
 # run staging server

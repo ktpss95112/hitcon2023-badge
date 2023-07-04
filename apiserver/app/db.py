@@ -10,6 +10,7 @@ import aiofiles
 from pydantic import BaseModel
 from pymongo import MongoClient
 
+from .config import config
 from .model import CardReader, PopcatRecord, User
 
 
@@ -51,11 +52,10 @@ class MongoDB(DB):
     def __init__(self, client: MongoClient) -> None:
         self.__client = client
 
-        # TODO: configurable db/collection name
-        self.__db = self.__client["badge"]
-        self.__user_table = self.__db["user"]
-        self.__card_reader_table = self.__db["card-reader"]
-        self.__popcat_record_table = self.__db["popcat-record"]
+        self.__db = self.__client[config.MONGODB_DB_NAME]
+        self.__user_table = self.__db[config.MONGODB_USER_TABLE_NAME]
+        self.__card_reader_table = self.__db[config.MONGODB_CARE_READER_TABLE_NAME]
+        self.__popcat_record_table = self.__db[config.MONGODB_POPCAT_RECORD_TABLE_NAME]
 
     async def get_user_by_card_uid(self, card_uid: str) -> User | None:
         obj = self.__user_table.find_one({"card_uid": card_uid})
@@ -175,12 +175,11 @@ __db = None
 
 
 def __new_mongodb() -> MongoDB:
-    # TODO: configurable connection info
-
-    db_username = "root"
-    db_password = "example"
-    db_host = "localhost:27017"
-    client = MongoClient(db_host, username=db_username, password=db_password)
+    client = MongoClient(
+        config.MONGODB_HOST,
+        username=config.MONGODB_USERNAME,
+        password=config.MONGODB_PASSWORD,
+    )
 
     return MongoDB(client=client)
 
