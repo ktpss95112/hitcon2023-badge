@@ -3,6 +3,7 @@ from datetime import datetime
 
 from fastapi import APIRouter
 
+from ..config import config
 from ..db import DB
 from ..dependency import CheckCardReaderTypeDep, DBDep, GetReaderDep, GetUserDep
 from ..model import CardReader, CardReaderType, User
@@ -49,8 +50,7 @@ async def tap_popcat(
     record = await db.get_popcat_by_card_uid(user)
 
     # check whether the user taps too fast
-    # TODO: configurable interval
-    COOLDOWN = 120
+    COOLDOWN = config.POPCAT_TAP_INTERVAL
     now = datetime.now()
     cooldown = (
         COOLDOWN - int((now - max(record.record)[0]).total_seconds())
@@ -79,7 +79,7 @@ async def tap_sponsor_flush_emoji(
     emoji_list: str,
     show: bool = True,
 ) -> bool:
-    emoji_list = emoji_list[:10]  # TODO: configurable size of emoji_list
+    emoji_list = emoji_list[: config.SPONSOR_EMOJI_BUFFER_LENGTH]
 
     # If the user simply wants to reset their emoji buffer, do not flush the content to dashboard.
     if not show:

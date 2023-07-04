@@ -330,7 +330,7 @@ summary = "An implementation of the WebSocket Protocol (RFC 6455 & 7692)"
 lock_version = "4.2"
 cross_platform = true
 groups = ["default", "lint"]
-content_hash = "sha256:ace088c0492cd83260bb92b550f949c1da3e298b30b251dd8482f32dad46ed35"
+content_hash = "sha256:ac484d2a7f5291d89d4089506a0dec577c0b5678d69bf1f9027767cf67f50979"
 
 [metadata.files]
 "aiofiles 23.1.0" = [
