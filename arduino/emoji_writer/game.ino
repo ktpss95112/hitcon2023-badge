@@ -3,6 +3,7 @@
 #include <ESP8266HTTPClient.h>
 #include <memory>
 #include "game.h"
+#include "card.h"
 
 namespace game {
 	static bool get_json(DynamicJsonDocument &doc, const char *path) {
@@ -33,6 +34,28 @@ namespace game {
 			return false;
 		}
 		return true;
+	}
+
+	static bool post_json(DynamicJsonDocument &doc, const char *path) {
+		String payload;
+		HTTPClient https;
+		int status_code;
+		DeserializationError json_error;
+
+		serializeJson(doc, payload);
+
+		if (!https.begin(wifi_client, host, host_port, path)) {
+			Serial.printf("failed connecting to %s%S", host, host_port);
+			Serial.println();
+			return false;
+		}
+
+		status_code = https.POST(payload);
+		if (status_code != 200) {
+			Serial.printf("status code %d", status_code);
+			Serial.println();
+			return false;
+		}
 	}
 
 	static time_t str_to_epoch(const char *str) {
@@ -90,6 +113,14 @@ namespace game {
 		return true;
 	}
 
+	static int get_cur_len() {
+		unsigned cur_len;
+		int res = card::pread((byte *)&cur_len, sizeof(cur_len), strlen_off);
+		if (res != sizeof(cur_len))
+			return -1;
+		return min(capacity, cur_len);
+	}
+
 	void setup() {
 		wifi_client.setClientRSACert(&client_cert, &client_key);
 		wifi_client.setFingerprint(host_fingerprint);
@@ -103,13 +134,13 @@ namespace game {
 		}
 	}
 
-	void clock_housekeeping() {
+	static void clock_housekeeping() {
 		if (seconds_from_boot() < clock_last_update + CLOCK_SYNC_INTERVAL)
 			return;
 		sync_clock();
 	}
 
-	void timetable_housekeeping() {
+	static void timetable_housekeeping() {
 		while (
 			emoji_timetable_head->next &&
 			emoji_timetable_head->next->starttime <= estimated_cur_time()
@@ -117,10 +148,9 @@ namespace game {
 			pop_one_emoji();
 	}
 
-	void process_card() {
-		int cur_len;
-		int res = card::pread((byte *)&cur_len, sizeof(int), strlen_off);
-		if (res != sizeof(int)) {
+	static void write_card() {
+		int cur_len = get_cur_len();
+		if (cur_len < 0) {
 			Serial.println("failed to read the current length");
 			return;
 		}
@@ -131,7 +161,7 @@ namespace game {
 			Serial.println("buffer is full");
 			return;
 		}
-		res = card::pwrite((byte *)cur_emoji.c_str(), emoji_len, cur_len);
+		int res = card::pwrite((byte *)cur_emoji.c_str(), emoji_len, cur_len);
 		if (res != emoji_len) {
 			Serial.println("failed to append emoji");
 			return;
@@ -142,5 +172,104 @@ namespace game {
 			Serial.println("failed to update the new length");
 			return;
 		}
+	}
+
+	static void erase_card() {
+		int zero = 0;
+		int res = card::pwrite((byte *)&zero, sizeof(int), strlen_off);
+		if (res != sizeof(int)) {
+			Serial.println("failed to erase the card");
+			return;
+		}
+	}
+
+	static inline char hex_to_char(int hex) {
+		char res;
+		if (res >= 10)
+			return res + 0x65;
+		else
+			return res + 0x30;
+	}
+
+	static String bytes_to_str(byte *bytes, int size) {
+		String res;
+
+		for (int i = 0; i < size; ++i) {
+			byte b = bytes[i];
+			int first_hex = (b >> 4) & 0xf;
+			int second_hex = b & 0xf;
+			res += hex_to_char(first_hex);
+			res += hex_to_char(second_hex);
+		}
+
+		return res;
+	}
+
+	static String url_escape(byte *bytes, int size) {
+		String res;
+
+		for (int i = 0; i < size; ++i) {
+			byte b = bytes[i];
+			int first_hex = (b >> 4) & 0xf;
+			int second_hex = b & 0xf;
+			res += '%';
+			res += hex_to_char(first_hex);
+			res += hex_to_char(second_hex);
+		}
+
+		return res;
+	}
+
+	static void flush_card() {
+		int cur_len = get_cur_len();
+		if (cur_len < 0) {
+			Serial.println("failed to read the current length");
+			return;
+		}
+		byte data[cur_len];
+		int res = card::pread(data, cur_len, 0);
+		if (res != cur_len) {
+			Serial.println("failed to read the emoji list");
+			return;
+		}
+
+		byte uuid[card::BLKSIZE];
+		res = card::read_uuid(uuid);
+		if (!res) {
+			Serial.println("failed to read the UUID");
+			return;
+		}
+
+		String path = flush_path;
+		path += reader_id;
+		path += "/user/";
+		path += bytes_to_str(uuid, 16);
+		path += "?emoji_list=";
+		path += url_escape(data, cur_len);
+		path += "&show=true";
+
+		DynamicJsonDocument doc(0);
+		post_json(doc, path.c_str());
+		erase_card();
+	}
+
+	void writer_loop() {
+		if (!card::legal_new_card())
+			return;
+		clock_housekeeping();
+		timetable_housekeeping();
+		write_card();
+	}
+
+	void eraser_loop() {
+		if (!card::legal_new_card())
+			return;
+		erase_card();
+	}
+
+	void flusher_loop() {
+		if (!card::legal_new_card())
+			return;
+		flush_card();
 	}
 }

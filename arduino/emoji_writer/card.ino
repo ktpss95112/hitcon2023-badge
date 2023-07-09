@@ -78,6 +78,14 @@ namespace card {
 		return false;
 	}
 
+	bool read_uuid(byte *buf) {
+		bool res = auth_b(0);
+		if (!res)
+			return false;
+		res = read_block(buf, 0, 0, BLKSIZE);
+		return res;
+	}
+
 	/*
 	 * Same as `pread` in libc, but without `fildes`.
 	 */
