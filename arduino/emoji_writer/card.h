@@ -13,6 +13,7 @@ namespace card {
 	MFRC522::MIFARE_Key default_key;
 	void setup();
 	bool legal_new_card();
+	bool read_uuid(byte *buf);
 	int pread(byte *buf, int nbyte, int offset);
 	int pwrite(byte *buf, int nbyte, int offset);
 }

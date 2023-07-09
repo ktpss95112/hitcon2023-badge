@@ -23,11 +23,14 @@ namespace game {
 	const char *client_cert_str = GAME_CLIENT_CERT;
 	const char *client_key_str = GAME_CLIENT_KEY;
 
+	const char *reader_id = GAME_READER_ID;
+
 	const char *emoji_timetable_path = "/cardreader/emoji_time_table/" GAME_READER_ID;
 	const char *current_time_path = "/time";
+	const char *flush_path = "/tap/sponsor_flush_emoji/";
 
-	const int capacity = card::BLKSIZE * 13 - sizeof(int);
-	const int strlen_off = capacity;
+	const unsigned capacity = card::BLKSIZE * 13 - sizeof(unsigned);
+	const unsigned strlen_off = capacity;
 
 	BearSSL::WiFiClientSecure wifi_client;
 	const BearSSL::X509List client_cert(client_cert_str);
@@ -37,9 +40,9 @@ namespace game {
 	std::shared_ptr<emoji_timetable> emoji_timetable_head = NULL;
 
 	void setup();
-	void clock_housekeeping();
-	void timetable_housekeeping();
-	void process_card();
+	void writer_loop();
+	void eraser_loop();
+	void flusher_loop();
 }
 
 #endif
