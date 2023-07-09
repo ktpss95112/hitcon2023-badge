@@ -1,13 +1,36 @@
 import asyncio
 from sys import exit
-
+import serial as pyserial
+import atexit
 import pygame as pg
+from time import time
 
 import Const
 from Card_control import game_control
 from EventManager import *
 from Model.Model import GameEngine
 
+class CardReader:
+    def __init__(self) -> None:
+        self.port = "/dev/ttyUSB0"
+        self.serial = pyserial.Serial(self.port)
+        atexit.register(self.serial.close)
+    
+    async def _get_tap(self):
+        return len(self.serial.read_all().strip()) > 0
+    
+    async def get_tap(self, func, timeout=1/Const.FPS/4):
+        start_time = time()
+        if timeout == -1:
+            tap = await self._get_tap()
+        else:
+            tap = await asyncio.wait_for(self._get_tap(), timeout=timeout)
+        # game
+        if tap:
+            func()
+        end_time = time()
+        if timeout != -1 and timeout > (end_time - start_time):
+            await asyncio.sleep(timeout - (end_time - start_time))
 
 class Controller:
     """
@@ -24,6 +47,7 @@ class Controller:
         ev_manager.register_listener(self)
 
         self.model = model
+        self.reader = CardReader()
 
     def initialize(self):
         """
@@ -50,34 +74,26 @@ class Controller:
             cur_state = self.model.state_machine.peek()
             if cur_state == Const.STATE_MENU:
                 self.ctrl_menu(key_down_events)
-            if cur_state == Const.STATE_PLAY:
+            elif cur_state == Const.STATE_PLAY:
                 self.ctrl_play(key_down_events)
-            if cur_state == Const.STATE_STOP:
+            elif cur_state == Const.STATE_STOP:
                 self.ctrl_stop(key_down_events)
-            if cur_state == Const.STATE_ENDGAME:
+            elif cur_state == Const.STATE_ENDGAME:
                 self.ctrl_endgame(key_down_events)
 
     def ctrl_menu(self, key_down_events):
-        for event_pg in key_down_events:
-            if event_pg.type == pg.KEYDOWN and event_pg.key == pg.K_SPACE:
-                self.ev_manager.post(EventStateChange(Const.STATE_PLAY))
+        asyncio.run(self.reader.get_tap(lambda: self.ev_manager.post(EventStateChange(Const.STATE_PLAY)), -1))
 
     def ctrl_play(self, key_down_events):
-        asyncio.run(game_control(self.ev_manager))
-        pass
-        # move to
-        # keys = pg.key.get_pressed()
-        # for k, v in Const.PLAYER_KEYS.items():
-        #     if keys[k]:
-        #         self.ev_manager.post(EventPlayerJump(*v))
+        asyncio.run(self.reader.get_tap(lambda: self.ev_manager.post(EventPlayerJump())))
 
     def ctrl_stop(self, key_down_events):
         pass
 
     def ctrl_endgame(self, key_down_events):
         # TODO: Do not exit game when game ends. Restart the game instead.
-        for event_pg in key_down_events:
-            if event_pg.type == pg.KEYDOWN:
-                pg.display.quit()
-                pg.quit()
-                exit()
+        def restart(ev_manager):
+            ev_manager.post(EventStateChange(Const.STATE_MENU))
+            ev_manager.post(EventRestart())
+
+        asyncio.run(self.reader.get_tap(lambda: restart(self.ev_manager), -1))

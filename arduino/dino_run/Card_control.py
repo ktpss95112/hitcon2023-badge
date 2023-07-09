@@ -23,7 +23,7 @@ async def get_tap():
     return len(serial.read_all().strip()) > 0
 
 
-async def game_control(ev_manager):
+async def game_control(ev_manager, timeout=timeout):
     start_time = time()
     tap = await asyncio.wait_for(get_tap(), timeout=timeout)
     # game
