@@ -3,6 +3,7 @@ import pygame as pg
 
 import Const
 from EventManager import *
+from Model.GameObject import *
 
 
 class StateMachine(object):
@@ -80,10 +81,7 @@ class GameEngine:
                 # collide -> end
                 for obstacle in self.obstacles:
                     for player in self.players:
-                        dist2 = pg.math.Vector2.length_squared(
-                            obstacle.position - player.position
-                        )
-                        if dist2 < (Const.PLAYER_RADIUS + Const.OBSTACLE_RADIUS) ** 2:
+                        if player.rect.colliderect(obstacle.rect):
                             self.ev_manager.post(EventGameOver())
 
                 # generate obstacle
@@ -132,19 +130,13 @@ class GameEngine:
         For example: obstacles, items, special effects
         """
         for obstacle in self.obstacles:
-            obstacle.position.x -= obstacle.speed * 1 / Const.FPS * self.speedup
-        while self.obstacles and self.obstacles[0].position.x < 0:
+            obstacle.tick(self.speedup)
+        while self.obstacles and self.obstacles[0].x < 0:
             self.obstacles = self.obstacles[1:]
 
     def update_players(self):
         for player in self.players:
-            player.position.y += player.speed * 1 / Const.FPS * self.speedup
-            player.position.y = min(
-                Const.ARENA_SIZE[1] - Const.PLAYER_RADIUS, player.position.y
-            )
-            player.speed -= Const.GRAVITY / Const.FPS * self.speedup
-            if player.position.y == Const.ARENA_SIZE[1] - Const.PLAYER_RADIUS:
-                player.speed = 0
+            player.tick(self.speedup)
 
     def update_endgame(self):
         """
@@ -163,23 +155,3 @@ class GameEngine:
         while self.running:
             self.ev_manager.post(EventEveryTick())
             self.clock.tick(Const.FPS)
-
-
-class Player:
-    def __init__(self, player_id):
-        self.player_id = player_id
-        self.position = pg.Vector2(Const.PLAYER_INIT_POSITION[player_id])
-        self.speed = 0
-
-    def jump(self):
-        if (
-            self.position.y
-            >= Const.ARENA_SIZE[1] - Const.PLAYER_RADIUS - Const.ACCELERATE_BAND
-        ):
-            self.speed -= Const.PLAYER_SPEED
-
-
-class Obstacle:
-    def __init__(self) -> None:
-        self.position = pg.Vector2(Const.OBSTACLE_INIT_POSITION)
-        self.speed = Const.OBSTACLE_SPEED
