@@ -1,4 +1,4 @@
-import math
+from glob import glob
 
 import pygame as pg
 
@@ -10,18 +10,29 @@ BACKGROUND_COLOR = pg.Color("black")
 PLAYER_COLOR = pg.Color("green")
 OBSTACLE_COLOR = pg.Color("magenta")
 PLAYER_RADIUS = 10
-OBSTACLE_RADIUS = 10
+PLAYER_HEIGHT, PLAYER_WIDTH = 120, 90
+OBSTACLE_HEIGHT, OBSTACLE_WIDTH = 10, 10
+PLAYER_JUMP_IMGS = sorted(glob("./assets/jump/*"))
+PLAYER_STAND_IMGS = sorted(glob("./assets/standing/*"))
 
 # model
 FPS = 60  # frame per second
 GAME_LENGTH = 30 * FPS
-PLAYER_INIT_POSITION = [pg.Vector2(200, ARENA_SIZE[1] - PLAYER_RADIUS)]
-OBSTACLE_INIT_POSITION = pg.Vector2(
-    ARENA_SIZE[0] - OBSTACLE_RADIUS, ARENA_SIZE[1] - OBSTACLE_RADIUS
+PLAYER_INIT_RECT = (
+    200 - PLAYER_WIDTH / 2,
+    800 - PLAYER_HEIGHT,
+    PLAYER_WIDTH,
+    PLAYER_HEIGHT,
+)  # (left, top, width, height)
+OBSTACLE_INIT_RECT = (
+    ARENA_SIZE[0] - 2 * OBSTACLE_WIDTH,
+    ARENA_SIZE[1] - 2 * OBSTACLE_HEIGHT,
+    2 * OBSTACLE_WIDTH,
+    2 * OBSTACLE_HEIGHT,
 )
-PLAYER_SPEED = 200
+PLAYER_SPEED = -200
 OBSTACLE_SPEED = 200
-GRAVITY = -400
+GRAVITY = 400
 ACCELERATE_BAND = 1e-2
 # speed up
 NEXT_STAGE_SCORE = 10 * FPS

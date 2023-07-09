@@ -7,7 +7,10 @@ import serial as pyserial
 import Const
 from EventManager import *
 
+# TODO: merge into controller.py
+
 # config
+# TODO: to dataclass
 port = "/dev/ttyUSB0"
 game_cycle = 1 / Const.FPS / 2
 timeout = game_cycle / 2  # second(s)

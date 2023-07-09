@@ -6,7 +6,7 @@ import pygame as pg
 import Const
 from Card_control import game_control
 from EventManager import *
-from Model import GameEngine
+from Model.Model import GameEngine
 
 
 class Controller:
@@ -75,6 +75,7 @@ class Controller:
         pass
 
     def ctrl_endgame(self, key_down_events):
+        # TODO: Do not exit game when game ends. Restart the game instead.
         for event_pg in key_down_events:
             if event_pg.type == pg.KEYDOWN:
                 pg.display.quit()

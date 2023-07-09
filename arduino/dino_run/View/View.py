@@ -2,7 +2,8 @@ import pygame as pg
 
 import Const
 from EventManager import *
-from Model import GameEngine
+from Model.Model import GameEngine
+from View.GameObject import *
 
 
 class GraphicalView:
@@ -26,11 +27,10 @@ class GraphicalView:
         self.screen = pg.display.set_mode(Const.WINDOW_SIZE)
         pg.display.set_caption(Const.WINDOW_CAPTION)
         self.background.fill(Const.BACKGROUND_COLOR)
+        self.players = View_Player(model)
+        self.obstacles = View_Obstacle(model)
 
     def initialize(self):
-        """
-        This method is called when a new game is instantiated.
-        """
         pass
 
     def notify(self, event):
@@ -75,6 +75,7 @@ class GraphicalView:
 
     def render_play(self):
         # draw background
+        # TODO: create a background surface in initialization and render only diff parts of every tick
         self.screen.fill(Const.BACKGROUND_COLOR)
 
         # draw score
@@ -82,17 +83,9 @@ class GraphicalView:
         text_surface = font.render(f"Score:{self.model.score}", 1, pg.Color("gray88"))
         self.screen.blit(text_surface, text_surface.get_rect())
 
-        # draw players
-        for player in self.model.players:
-            center = list(map(int, player.position))
-            pg.draw.circle(self.screen, Const.PLAYER_COLOR, center, Const.PLAYER_RADIUS)
-
-        # draw obstacles
-        for obstacle in self.model.obstacles:
-            center = list(map(int, obstacle.position))
-            pg.draw.circle(
-                self.screen, Const.OBSTACLE_COLOR, center, Const.OBSTACLE_RADIUS
-            )
+        # draw GameObjects
+        self.players.draw(self.screen)
+        self.obstacles.draw(self.screen)
 
         pg.display.flip()
 
