@@ -5,7 +5,13 @@ from fastapi import APIRouter
 
 from ..config import config
 from ..db import DB
-from ..dependency import CheckCardReaderTypeDep, DBDep, GetReaderDep, GetUserDep
+from ..dependency import (
+    CheckCardReaderTypeDep,
+    DBDep,
+    GetPopcatDep,
+    GetReaderDep,
+    GetUserDep,
+)
 from ..model import CardReader, CardReaderType, User
 
 router = APIRouter(
@@ -15,6 +21,10 @@ router = APIRouter(
 
 
 def user_add_record(func):
+    """
+    The wrapped function should have `user, reader, db` as the first 3 arguments.
+    """
+
     @functools.wraps(func)
     async def wrapper(user: User, reader: CardReader, db: DB, *args, **kwargs):
         ret = await func(user, reader, db, *args, **kwargs)
@@ -37,17 +47,16 @@ async def tap_sponsor(user: GetUserDep, reader: GetReaderDep, db: DBDep) -> bool
 @router.post(
     "/popcat/{reader_id}/user/{card_uid}",
     dependencies=[CheckCardReaderTypeDep(CardReaderType.POPCAT)],
+    tags=["popcat"],
 )
 @user_add_record
 async def tap_popcat(
-    user: GetUserDep, reader: GetReaderDep, db: DBDep, incr: int
+    user: GetUserDep, reader: GetReaderDep, db: DBDep, record: GetPopcatDep, incr: int
 ) -> tuple[bool, int]:
     """
-    The returned boolean indicates whether the submit is successful.
+    The returned boolean indicates whether the submission is successful.
     The returned integer indicates the cooldown of the next tapping.
     """
-
-    record = await db.get_popcat_by_card_uid(user)
 
     # check whether the user taps too fast
     COOLDOWN = config.POPCAT_TAP_INTERVAL
