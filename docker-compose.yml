@@ -1,0 +1,11 @@
+services:
+  db:
+    image: mongo:6.0
+    restart: always
+    ports:
+      - 27017:27017  # TODO: remove this in production
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+
+  # apiserver:

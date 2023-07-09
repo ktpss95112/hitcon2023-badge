@@ -9,6 +9,7 @@ dependencies = [
     "fastapi[all]>=0.96.0",
     "aiofiles>=23.1.0",
     "emoji>=2.4.0",
+    "pymongo>=4.4.0",
 ]
 requires-python = ">=3.10"
 license = {text = "MIT"}
