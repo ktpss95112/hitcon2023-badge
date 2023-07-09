@@ -51,6 +51,10 @@ namespace game {
 		emoji_timetable_head = cur;
 	}
 
+	static void pop_one_emoji() {
+		emoji_timetable_head = emoji_timetable_head->next;
+	}
+
 	static bool read_timetable() {
 		int i, n;
 		DynamicJsonDocument doc(256);
@@ -69,6 +73,10 @@ namespace game {
 
 	static time_t seconds_from_boot() {
 		return millis() / 1000;
+	}
+
+	static time_t estimated_cur_time() {
+		return clock_offset + seconds_from_boot();
 	}
 
 	static bool sync_clock() {
@@ -93,6 +101,20 @@ namespace game {
 			Serial.println("time table read failed");
 			return;
 		}
+	}
+
+	void clock_housekeeping() {
+		if (seconds_from_boot() < clock_last_update + CLOCK_SYNC_INTERVAL)
+			return;
+		sync_clock();
+	}
+
+	void timetable_housekeeping() {
+		while (
+			emoji_timetable_head->next &&
+			emoji_timetable_head->next->starttime <= estimated_cur_time()
+		)
+			pop_one_emoji();
 	}
 
 	void process_card() {

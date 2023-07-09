@@ -11,4 +11,5 @@
 #define GAME_CLIENT_CERT "-----BEGIN CERTIFICATE-----\n...-----END CERTIFICATE-----\n"
 #define GAME_CLIENT_KEY "-----BEGIN PRIVATE KEY-----\n...-----END PRIVATE KEY-----\n"
 #define GAME_READER_ID "ID"
+#define CLOCK_SYNC_INTERVAL 1000
 #endif

@@ -20,4 +20,7 @@ void setup() {
 void loop() {
 	if (!card::legal_new_card())
 		return;
+	game::clock_housekeeping();
+	game::timetable_housekeeping();
+	game::process_card();
 }
