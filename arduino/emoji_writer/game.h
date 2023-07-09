@@ -26,7 +26,7 @@ namespace game {
 	const char *emoji_timetable_path = "/cardreader/emoji_time_table/" GAME_READER_ID;
 	const char *current_time_path = "/time";
 
-	const int capacity = BLKSIZE * 13 - sizeof(int);
+	const int capacity = card::BLKSIZE * 13 - sizeof(int);
 	const int strlen_off = capacity;
 
 	BearSSL::WiFiClientSecure wifi_client;
@@ -37,6 +37,8 @@ namespace game {
 	std::shared_ptr<emoji_timetable> emoji_timetable_head = NULL;
 
 	void setup();
+	void clock_housekeeping();
+	void timetable_housekeeping();
 	void process_card();
 }
 
