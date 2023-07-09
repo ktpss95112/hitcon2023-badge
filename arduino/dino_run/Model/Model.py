@@ -118,6 +118,9 @@ class GameEngine:
         elif isinstance(event, EventGameOver):
             self.state_machine.push(Const.STATE_ENDGAME)
 
+        elif isinstance(event, EventRestart):
+            self.initialize()
+
     def update_menu(self):
         """
         Update the objects in welcome scene.

@@ -63,3 +63,7 @@ class EventPlayerJump(BaseEvent):
         self.player_id = player_id
 
     name = "PlayerJump event"
+
+
+class EventRestart(BaseEvent):
+    name = "Restart event"

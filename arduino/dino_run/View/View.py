@@ -53,6 +53,9 @@ class GraphicalView:
             elif cur_state == Const.STATE_ENDGAME:
                 self.render_endgame()
 
+        elif isinstance(event, EventRestart):
+            self.initialize()
+
     def display_fps(self):
         """
         Display the current fps on the window caption.
@@ -67,7 +70,7 @@ class GraphicalView:
 
         # draw text
         font = pg.font.Font(None, 36)
-        text_surface = font.render("Press [space] to start ...", 1, pg.Color("gray88"))
+        text_surface = font.render("Beep Card To Start ...", 1, pg.Color("gray88"))
         text_center = (Const.ARENA_SIZE[0] / 2, Const.ARENA_SIZE[1] / 2)
         self.screen.blit(text_surface, text_surface.get_rect(center=text_center))
 
@@ -106,7 +109,7 @@ class GraphicalView:
         )
         text_center = (text_center[0], text_center[1] + 40)
         self.screen.blit(text_surface, text_surface.get_rect(center=text_center))
-        text_surface = font.render("Press Any Key To Exit", 1, pg.Color("gray88"))
+        text_surface = font.render("Beep Card To Restart", 1, pg.Color("gray88"))
         text_center = (text_center[0], text_center[1] + 40)
         self.screen.blit(text_surface, text_surface.get_rect(center=text_center))
 
