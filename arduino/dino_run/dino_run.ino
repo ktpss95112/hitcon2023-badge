@@ -13,3 +13,4 @@ void loop() {
 	if (!card::legal_new_card())
 		return;
 	Serial.println("1");
+}
