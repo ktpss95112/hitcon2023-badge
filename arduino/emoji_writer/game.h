@@ -9,10 +9,10 @@ namespace game {
 	struct emoji_timetable {
 		time_t starttime;
 		String emoji;
-		emoji_timetable *next;
+		std::shared_ptr<emoji_timetable> next;
 		emoji_timetable(
 			time_t starttime, const char *emoji,
-			emoji_timetable *next
+			std::shared_ptr<emoji_timetable> next
 		) : starttime(starttime), emoji(emoji), next(next) {}
 	};
 	const char *host = GAME_HOST;
@@ -27,7 +27,7 @@ namespace game {
 	const BearSSL::PrivateKey client_key(client_key_str);
 	time_t clock_offset = 0;
 	clock_t clock_last_update = 0;
-	emoji_timetable *emoji_timetable_head = NULL;
+	std::shared_ptr<emoji_timetable> emoji_timetable_head = NULL;
 	void setup();
 }
 
