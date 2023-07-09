@@ -88,9 +88,13 @@ async def tap_sponsor_flush_emoji(
     emoji_list: str,
     show: bool = True,
 ) -> bool:
+    """
+    If the user simply wants to reset their emoji buffer, do not flush the content to dashboard.
+    In that case, `show` should be set to False.
+    """
+
     emoji_list = emoji_list[: config.SPONSOR_EMOJI_BUFFER_LENGTH]
 
-    # If the user simply wants to reset their emoji buffer, do not flush the content to dashboard.
     if not show:
         return True
 

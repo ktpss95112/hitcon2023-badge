@@ -68,7 +68,9 @@ class MongoDB(DB):
         self.__user_table = self.__db[config.MONGODB_USER_TABLE_NAME]
         self.__card_reader_table = self.__db[config.MONGODB_CARE_READER_TABLE_NAME]
         self.__popcat_record_table = self.__db[config.MONGODB_POPCAT_RECORD_TABLE_NAME]
-        self.__dinorun_record_table = self.__db[config.MONGODB_DINORUN_RECORD_TABLE_NAME]
+        self.__dinorun_record_table = self.__db[
+            config.MONGODB_DINORUN_RECORD_TABLE_NAME
+        ]
 
     async def get_user_by_card_uid(self, card_uid: str) -> User | None:
         obj = self.__user_table.find_one({"card_uid": card_uid})
