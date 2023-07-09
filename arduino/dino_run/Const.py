@@ -9,28 +9,39 @@ ARENA_SIZE = (800, 800)
 BACKGROUND_COLOR = pg.Color("black")
 PLAYER_COLOR = pg.Color("green")
 OBSTACLE_COLOR = pg.Color("magenta")
-PLAYER_RADIUS = 10
-PLAYER_HEIGHT, PLAYER_WIDTH = 120, 90
-OBSTACLE_HEIGHT, OBSTACLE_WIDTH = 10, 10
+PLAYER_LINE_COLOR = {
+    "move": pg.Color("lightgoldenrod"),
+    "jump": pg.Color("lightgoldenrod4"),
+}
+PLAYER_HEIGHT, PLAYER_WIDTH = 80, 60
+OBSTACLE_HEIGHT, OBSTACLE_WIDTH = 20, 20
 PLAYER_JUMP_IMGS = sorted(glob("./assets/jump/*"))
-PLAYER_STAND_IMGS = sorted(glob("./assets/standing/*"))
+PLAYER_MOVE_IMGS = sorted(glob("./assets/move/*"))
 
 # model
 FPS = 60  # frame per second
 GAME_LENGTH = 30 * FPS
 PLAYER_INIT_RECT = (
     200 - PLAYER_WIDTH / 2,
-    800 - PLAYER_HEIGHT,
+    ARENA_SIZE[1] - PLAYER_HEIGHT,
     PLAYER_WIDTH,
     PLAYER_HEIGHT,
 )  # (left, top, width, height)
-OBSTACLE_INIT_RECT = (
-    ARENA_SIZE[0] - 2 * OBSTACLE_WIDTH,
-    ARENA_SIZE[1] - 2 * OBSTACLE_HEIGHT,
-    2 * OBSTACLE_WIDTH,
-    2 * OBSTACLE_HEIGHT,
-)
-PLAYER_SPEED = -200
+OBSTACLE_INIT_RECT = [
+    (
+        ARENA_SIZE[0] - 2 * OBSTACLE_WIDTH,
+        ARENA_SIZE[1] - 2 * OBSTACLE_HEIGHT,
+        2 * OBSTACLE_WIDTH,
+        2 * OBSTACLE_HEIGHT,
+    ),
+    (
+        ARENA_SIZE[0] - 2 * OBSTACLE_WIDTH,
+        ARENA_SIZE[1] - PLAYER_HEIGHT - 3 * OBSTACLE_HEIGHT,
+        2 * OBSTACLE_WIDTH,
+        2 * OBSTACLE_HEIGHT,
+    ),
+]
+PLAYER_SPEED = -300
 OBSTACLE_SPEED = 200
 GRAVITY = 400
 ACCELERATE_BAND = 1e-2

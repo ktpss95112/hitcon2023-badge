@@ -87,7 +87,8 @@ class GameEngine:
                 # generate obstacle
                 self.next_obstacle_tick -= 1
                 if self.next_obstacle_tick <= 0:
-                    self.obstacles.append(Obstacle())
+                    idx = numpy.random.randint(len(Const.OBSTACLE_INIT_RECT))
+                    self.obstacles.append(Obstacle(Const.OBSTACLE_INIT_RECT[idx]))
                     self.next_obstacle_tick = Const.OBSTACLE_LEAST_PERIOD + int(
                         numpy.random.poisson(Const.OBSTACLE_LAMBDA)
                     )
