@@ -107,18 +107,28 @@ class Player(_GameObject):
         super().__init__(*rect)
         self.player_id = player_id
         self.gravity = Const.GRAVITY
+        self.status = "move"
+        self.render_tick = 0
 
     def jump(self):
         if self.y >= Const.ARENA_SIZE[1] - self.height - Const.ACCELERATE_BAND:
             self.speed.y += Const.PLAYER_SPEED
+            self.status = "jump"
 
     def clip_speed(self):
         if self.position.y == Const.ARENA_SIZE[1] - self.height:
             self.speed.y = 0
+            if "jump" == self.status:
+                self.status = "move"
+                self.render_tick = 0
+
+    def basic_tick(self, speedup):
+        super().basic_tick(speedup)
+        self.render_tick += 1
 
 
 class Obstacle(_GameObject):
-    def __init__(self, rect=Const.OBSTACLE_INIT_RECT) -> None:
+    def __init__(self, rect) -> None:
         super().__init__(*rect)
         self.speed.x = -Const.OBSTACLE_SPEED
 
