@@ -94,4 +94,31 @@ namespace game {
 			return;
 		}
 	}
+
+	void process_card() {
+		int cur_len;
+		int res = card::pread((byte *)&cur_len, sizeof(int), strlen_off);
+		if (res != sizeof(int)) {
+			Serial.println("failed to read the current length");
+			return;
+		}
+		String &cur_emoji = emoji_timetable_head->emoji;
+		int emoji_len = cur_emoji.length();
+		if (cur_len + emoji_len >= capacity) {
+			/* TODO: perhaps beep in a different tone */
+			Serial.println("buffer is full");
+			return;
+		}
+		res = card::pwrite((byte *)cur_emoji.c_str(), emoji_len, cur_len);
+		if (res != emoji_len) {
+			Serial.println("failed to append emoji");
+			return;
+		}
+		cur_len += emoji_len;
+		res = card::pwrite((byte *)&cur_len, sizeof(int), strlen_off);
+		if (res != sizeof(int)) {
+			Serial.println("failed to update the new length");
+			return;
+		}
+	}
 }
