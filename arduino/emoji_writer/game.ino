@@ -1,6 +1,7 @@
 #include <time.h>
 #include <ArduinoJson.h>
 #include <ESP8266HTTPClient.h>
+#include <memory>
 #include "game.h"
 
 namespace game {
@@ -44,9 +45,9 @@ namespace game {
 		const char *starttime_str = doc[0];
 		const char *emoji_str = doc[1];
 		time_t starttime = str_to_epoch(starttime_str);
-		emoji_timetable *cur = new emoji_timetable(
+		std::shared_ptr<emoji_timetable> cur(new emoji_timetable(
 			starttime, emoji_str, emoji_timetable_head
-		);
+		));
 		emoji_timetable_head = cur;
 	}
 
@@ -66,14 +67,18 @@ namespace game {
 		return true;
 	}
 
+	static time_t seconds_from_boot() {
+		return millis() / 1000;
+	}
+
 	static bool sync_clock() {
 		DynamicJsonDocument doc(48);
 		if (!get_json(doc, current_time_path))
 			return false;
 		String datetime_str = doc.as<String>();
 		time_t now = str_to_epoch(datetime_str.c_str());
-		clock_offset = now - clock();
-		clock_last_update = clock();
+		clock_offset = now - seconds_from_boot();
+		clock_last_update = seconds_from_boot();
 		return true;
 	}
 
