@@ -27,8 +27,9 @@ class User(BaseModel):
 class CardReaderType(IntEnum):
     STAFF = 0
     SPONSOR = 1
-    POPCAT = 2  # TODO: popcat game
+    POPCAT = 2
     SPONSOR_FLUSH = 3
+    DINORUN = 4
 
 
 # Note: if create new columns, give an initial value as auto migration
@@ -53,3 +54,16 @@ class PopcatRecord(BaseModel):
     def get_score(self) -> int:
         # TODO: maybe sum the records which lie within a specific time interval
         return sum(incr for time, incr in self.record)
+
+
+class DinorunRecord(BaseModel):
+    card_uid: str
+    record: list[
+        tuple[datetime, float]
+    ] = []  # every item is the submission time and the score
+
+    def add_record(self, time: datetime, score: float):
+        self.record.append((time, score))
+
+    def get_best_score(self) -> float:
+        return max((s[1] for s in self.record), default=0)

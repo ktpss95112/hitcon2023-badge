@@ -14,6 +14,7 @@ class Config:
     MONGODB_USER_TABLE_NAME: str = "user"
     MONGODB_CARE_READER_TABLE_NAME: str = "card-reader"
     MONGODB_POPCAT_RECORD_TABLE_NAME: str = "popcat-record"
+    MONGODB_DINORUN_RECORD_TABLE_NAME: str = "dinorun-record"
 
     POPCAT_TAP_INTERVAL: int = 120
 

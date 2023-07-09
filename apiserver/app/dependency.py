@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import Depends, HTTPException
 
 from .db import DB, get_db
-from .model import CardReader, CardReaderType, PopcatRecord, User
+from .model import CardReader, CardReaderType, DinorunRecord, PopcatRecord, User
 
 DBDep = Annotated[DB, Depends(get_db)]
 
@@ -44,10 +44,20 @@ CheckCardReaderTypeDep = lambda type: Depends(__CheckCardReaderType(type))
 
 
 async def __get_popcat(user: GetUserDep, db: DBDep) -> PopcatRecord:
-    record = await db.get_popcat_by_card_uid(user)
+    record = await db.get_popcat_by_user(user)
     if record is None:
         raise HTTPException(404, "No popcat record found.")
     return record
 
 
 GetPopcatDep = Annotated[PopcatRecord, Depends(__get_popcat)]
+
+
+async def __get_dinorun(user: GetUserDep, db: DBDep) -> DinorunRecord:
+    record = await db.get_dinorun_by_user(user)
+    if record is None:
+        raise HTTPException(404, "No dinorun record found.")
+    return record
+
+
+GetDinorunDep = Annotated[DinorunRecord, Depends(__get_dinorun)]

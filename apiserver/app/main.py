@@ -4,7 +4,7 @@ from datetime import datetime
 from fastapi import FastAPI
 
 from .db import init_db
-from .router import cardreader, popcat, tap, user
+from .router import cardreader, dinorun, popcat, tap, user
 
 
 @asynccontextmanager
@@ -22,6 +22,7 @@ app.include_router(user.router)
 app.include_router(cardreader.router)
 app.include_router(tap.router)
 app.include_router(popcat.router)
+app.include_router(dinorun.router)
 
 
 @app.get("/")

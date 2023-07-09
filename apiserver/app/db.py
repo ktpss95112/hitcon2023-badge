@@ -11,7 +11,7 @@ from pydantic import BaseModel
 from pymongo import MongoClient
 
 from .config import config
-from .model import CardReader, PopcatRecord, User
+from .model import CardReader, DinorunRecord, PopcatRecord, User
 
 
 class DB(abc.ABC):
@@ -36,7 +36,7 @@ class DB(abc.ABC):
         pass
 
     @abc.abstractmethod
-    async def get_popcat_by_card_uid(self, user: User) -> PopcatRecord:
+    async def get_popcat_by_user(self, user: User) -> PopcatRecord:
         pass
 
     @abc.abstractmethod
@@ -45,6 +45,18 @@ class DB(abc.ABC):
 
     @abc.abstractmethod
     async def get_all_popcat(self) -> list[PopcatRecord]:
+        pass
+
+    @abc.abstractmethod
+    async def get_dinorun_by_user(self, user: User) -> DinorunRecord:
+        pass
+
+    @abc.abstractmethod
+    async def write_dinorun(self, record: DinorunRecord):
+        pass
+
+    @abc.abstractmethod
+    async def get_all_dinorun(self) -> list[DinorunRecord]:
         pass
 
 
@@ -56,6 +68,7 @@ class MongoDB(DB):
         self.__user_table = self.__db[config.MONGODB_USER_TABLE_NAME]
         self.__card_reader_table = self.__db[config.MONGODB_CARE_READER_TABLE_NAME]
         self.__popcat_record_table = self.__db[config.MONGODB_POPCAT_RECORD_TABLE_NAME]
+        self.__dinorun_record_table = self.__db[config.MONGODB_DINORUN_RECORD_TABLE_NAME]
 
     async def get_user_by_card_uid(self, card_uid: str) -> User | None:
         obj = self.__user_table.find_one({"card_uid": card_uid})
@@ -78,7 +91,7 @@ class MongoDB(DB):
     async def get_all_reader(self) -> list[CardReader]:
         return [CardReader.parse_obj(obj) for obj in self.__card_reader_table.find()]
 
-    async def get_popcat_by_card_uid(self, user: User) -> PopcatRecord:
+    async def get_popcat_by_user(self, user: User) -> PopcatRecord:
         obj = self.__popcat_record_table.find_one({"card_uid": user.card_uid})
         if obj is None:
             # If the record is not created before, create it.
@@ -91,6 +104,21 @@ class MongoDB(DB):
     async def get_all_popcat(self) -> list[PopcatRecord]:
         return [
             PopcatRecord.parse_obj(obj) for obj in self.__popcat_record_table.find()
+        ]
+
+    async def get_dinorun_by_user(self, user: User) -> DinorunRecord:
+        obj = self.__dinorun_record_table.find_one({"card_uid": user.card_uid})
+        if obj is None:
+            # If the record is not created before, create it.
+            return DinorunRecord(card_uid=user.card_uid)
+        return DinorunRecord.parse_obj(obj)
+
+    async def write_dinorun(self, record: DinorunRecord):
+        self.__dinorun_record_table.insert_one(dict(record))
+
+    async def get_all_dinorun(self) -> list[DinorunRecord]:
+        return [
+            DinorunRecord.parse_obj(obj) for obj in self.__dinorun_record_table.find()
         ]
 
 
@@ -143,7 +171,7 @@ class MongoDB(DB):
 #         default_write, get_filename_from_reader_id, lambda reader: reader.id
 #     )
 
-#     async def get_popcat_by_card_uid(self, user: User) -> PopcatRecord:
+#     async def get_popcat_by_user(self, user: User) -> PopcatRecord:
 #         ret = await self.default_read(
 #             PopcatRecord, self.__class__.get_filename_for_popcat, user.card_uid
 #         )

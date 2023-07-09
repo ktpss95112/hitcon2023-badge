@@ -18,7 +18,7 @@ import app.db as db
 import app.model as model
 
 
-async def create_users(db_):
+async def create_users(db_: db.DB):
     await db_.write_user(
         model.User(
             name="chiffoncake", card_uid="deadbeef", type=model.UserType.STAFF_ADMIN
@@ -35,7 +35,7 @@ async def create_users(db_):
     )
 
 
-async def create_readers(db_):
+async def create_readers(db_: db.DB):
     await db_.write_reader(
         model.CardReader(
             id="reader0", name="staff reader", type=model.CardReaderType.STAFF
