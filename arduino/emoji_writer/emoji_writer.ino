@@ -20,4 +20,6 @@ void setup() {
 void loop() {
 	if (!card::legal_new_card())
 		return;
+	/* TODO: sync the time and do the timetable housekeeping */
+	game::process_card();
 }
