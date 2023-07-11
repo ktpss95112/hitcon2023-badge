@@ -1,7 +1,8 @@
 import functools
 from datetime import datetime
+from typing import Annotated
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Body
 
 from ..config import config
 from ..db import DB
@@ -85,8 +86,8 @@ async def tap_sponsor_flush_emoji(
     user: GetUserDep,
     reader: GetReaderDep,
     db: DBDep,
-    emoji_list: str,
-    show: bool = True,
+    emoji_list: Annotated[str, Body()],
+    show: Annotated[bool, Body()] = True,
 ) -> bool:
     """
     If the user simply wants to reset their emoji buffer, do not flush the content to dashboard.
