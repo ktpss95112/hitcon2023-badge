@@ -31,16 +31,17 @@ OBSTACLE_INIT_RECT = [
     (
         ARENA_SIZE[0] - 2 * OBSTACLE_WIDTH,
         ARENA_SIZE[1] - 2 * OBSTACLE_HEIGHT,
-        2 * OBSTACLE_WIDTH,
+        w * OBSTACLE_WIDTH,
         2 * OBSTACLE_HEIGHT,
-    ),
+    ) for w in (2,4,6)
+] + [
     (
         ARENA_SIZE[0] - 2 * OBSTACLE_WIDTH,
         ARENA_SIZE[1] - PLAYER_HEIGHT - 3 * OBSTACLE_HEIGHT,
-        2 * OBSTACLE_WIDTH,
+        w * OBSTACLE_WIDTH,
         2 * OBSTACLE_HEIGHT,
-    ),
-]
+    ) for w in (2,4,6)
+] # difference width obstacles
 PLAYER_SPEED = -300
 OBSTACLE_SPEED = 200
 GRAVITY = 400

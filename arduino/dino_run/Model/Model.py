@@ -84,7 +84,7 @@ class GameEngine:
                         if player.rect.colliderect(obstacle.rect):
                             self.ev_manager.post(EventGameOver())
 
-                # generate obstacle
+                # generate obstacle with poisson distribution
                 self.next_obstacle_tick -= 1
                 if self.next_obstacle_tick <= 0:
                     idx = numpy.random.randint(len(Const.OBSTACLE_INIT_RECT))

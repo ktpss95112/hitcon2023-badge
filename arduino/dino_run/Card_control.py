@@ -20,7 +20,11 @@ atexit.register(serial.close)
 
 
 async def get_tap():
-    return len(serial.read_all().strip()) > 0
+    res = len(serial.readline().strip()) > 0
+    # clean output buf
+    serial.read_all()
+    return res
+
 
 
 async def game_control(ev_manager, timeout=timeout):
