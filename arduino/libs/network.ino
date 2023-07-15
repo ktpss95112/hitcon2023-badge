@@ -1,4 +1,6 @@
 #include "network.h"
+#include <ESP8266HTTPClient.h>
+
 
 namespace network {
 	void setup() {
