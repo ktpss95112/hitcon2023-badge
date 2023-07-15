@@ -104,11 +104,14 @@ class GraphicalView:
         text_surface = font.render("Game Over", 1, pg.Color("gray88"))
         text_center = (Const.ARENA_SIZE[0] / 2, Const.ARENA_SIZE[1] / 2)
         self.screen.blit(text_surface, text_surface.get_rect(center=text_center))
+
+        user_id = self.model.controller.reader.user_id.decode()
         text_surface = font.render(
-            f"Your Score is {self.model.score}", 1, pg.Color("gray88")
+            f"Your ID: {user_id}, Score: {self.model.score}", 1, pg.Color("gray88")
         )
         text_center = (text_center[0], text_center[1] + 40)
         self.screen.blit(text_surface, text_surface.get_rect(center=text_center))
+
         text_surface = font.render("Beep Card To Restart", 1, pg.Color("gray88"))
         text_center = (text_center[0], text_center[1] + 40)
         self.screen.blit(text_surface, text_surface.get_rect(center=text_center))

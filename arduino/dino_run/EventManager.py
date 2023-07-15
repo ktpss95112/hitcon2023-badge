@@ -59,11 +59,16 @@ class EventGameOver(BaseEvent):
 
 
 class EventPlayerJump(BaseEvent):
-    def __init__(self, player_id=0):
+    def __init__(self, player_id=0, jump_cnt=0):
         self.player_id = player_id
+        self.jump_cnt = jump_cnt
 
     name = "PlayerJump event"
 
 
 class EventRestart(BaseEvent):
     name = "Restart event"
+
+
+class EventReaderReset(BaseEvent):
+    name = "Reader Reset event"

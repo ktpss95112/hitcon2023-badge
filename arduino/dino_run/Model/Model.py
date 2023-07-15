@@ -113,7 +113,7 @@ class GameEngine:
             self.running = False
 
         elif isinstance(event, EventPlayerJump):
-            self.players[event.player_id].jump()
+            self.players[event.player_id].jump(event.jump_cnt)
 
         elif isinstance(event, EventGameOver):
             self.state_machine.push(Const.STATE_ENDGAME)
@@ -140,7 +140,7 @@ class GameEngine:
 
     def update_players(self):
         for player in self.players:
-            player.tick(self.speedup)
+            player.tick(self.speedup, reader=self.controller.reader)
 
     def update_endgame(self):
         """
