@@ -1,11 +1,7 @@
 #include "network.h"
 #include "card.h"
 #include "game.h"
-
-/*
- * Game Configuration
- */
-#define MAX_DATA 204
+#include "config.h"
 
 /*
  * Entrypoints
@@ -18,5 +14,11 @@ void setup() {
 }
 
 void loop() {
+#ifdef WRITER
 	game::writer_loop();
+#elif defined ERASER
+	game::eraser_loop();
+#elif defined FLUSHER
+	game::flusher_loop();
+#endif
 }
