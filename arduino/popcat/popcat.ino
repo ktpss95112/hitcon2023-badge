@@ -1,10 +1,10 @@
-#include "wifi.h"
+#include "network.h"
 #include "card.h"
 #include "game.h"
 
 void setup() {
     Serial.begin(9600);
-    wifi::setup();
+    network::setup();
     card::setup();
     game::setup();
 }
