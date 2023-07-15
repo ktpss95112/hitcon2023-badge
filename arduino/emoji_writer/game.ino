@@ -56,6 +56,7 @@ namespace game {
 			Serial.println();
 			return false;
 		}
+		return true;
 	}
 
 	static time_t str_to_epoch(const char *str) {
@@ -205,21 +206,6 @@ namespace game {
 		return res;
 	}
 
-	static String url_escape(byte *bytes, int size) {
-		String res;
-
-		for (int i = 0; i < size; ++i) {
-			byte b = bytes[i];
-			int first_hex = (b >> 4) & 0xf;
-			int second_hex = b & 0xf;
-			res += '%';
-			res += hex_to_char(first_hex);
-			res += hex_to_char(second_hex);
-		}
-
-		return res;
-	}
-
 	static void flush_card() {
 		int cur_len = get_cur_len();
 		if (cur_len < 0) {
@@ -244,11 +230,10 @@ namespace game {
 		path += reader_id;
 		path += "/user/";
 		path += bytes_to_str(uuid, 16);
-		path += "?emoji_list=";
-		path += url_escape(data, cur_len);
-		path += "&show=true";
 
-		DynamicJsonDocument doc(0);
+		DynamicJsonDocument doc(cur_len * 3);
+		doc["emoji_list"] = data;
+		doc["show"] = true;
 		post_json(doc, path.c_str());
 		erase_card();
 	}
