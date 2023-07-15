@@ -5,6 +5,7 @@
 #include "game.h"
 #include "card.h"
 #include "network.h"
+#include "util.h"
 
 namespace game {
 	static time_t str_to_epoch(const char *str) {
@@ -153,7 +154,7 @@ namespace game {
 		String path = flush_path;
 		path += reader_id;
 		path += "/user/";
-		path += bytes_to_str(uuid, 16);
+		path += util::bytes_to_str(uuid, 16);
 
 		/* The *3 is just an approximation. */
 		DynamicJsonDocument doc(cur_len * 3);
