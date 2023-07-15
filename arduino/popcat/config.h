@@ -3,6 +3,4 @@
 
 #include "master_config.h"
 
-#define GAME_READER_ID "ID"
-#define CLOCK_SYNC_INTERVAL 1000
 #endif
