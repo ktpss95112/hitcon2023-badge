@@ -3,7 +3,7 @@ from glob import glob
 import pygame as pg
 
 # view
-WINDOW_CAPTION = "Challenge 2020 Homework"
+WINDOW_CAPTION = "HITCON 2023 Dino Run"
 WINDOW_SIZE = (800, 800)
 ARENA_SIZE = (800, 800)
 BACKGROUND_COLOR = pg.Color("black")
