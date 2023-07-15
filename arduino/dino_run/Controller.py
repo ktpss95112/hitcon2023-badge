@@ -6,7 +6,6 @@ import pygame as pg
 from time import time
 
 import Const
-from Card_control import game_control
 from EventManager import *
 from Model.Model import GameEngine
 
@@ -15,9 +14,14 @@ class CardReader:
         self.port = "/dev/ttyUSB0"
         self.serial = pyserial.Serial(self.port)
         atexit.register(self.serial.close)
+        self.user_id = ""
     
     async def _get_tap(self):
-        return len(self.serial.read_all().strip()) > 0
+        res = self.serial.readline().strip()
+        tap = len(res) > 0
+        if tap:
+            self.user_id = res
+        return tap
     
     async def get_tap(self, func, timeout=1/Const.FPS/4):
         start_time = time()
