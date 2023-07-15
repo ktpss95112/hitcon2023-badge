@@ -155,6 +155,7 @@ namespace game {
 		path += "/user/";
 		path += bytes_to_str(uuid, 16);
 
+		/* The *3 is just an approximation. */
 		DynamicJsonDocument doc(cur_len * 3);
 		doc["emoji_list"] = data;
 		doc["show"] = true;
