@@ -46,4 +46,27 @@ namespace network {
 		}
 		return true;
 	}
+
+	bool post_json(DynamicJsonDocument &doc, const char *path) {
+		String payload;
+		HTTPClient https;
+		int status_code;
+		DeserializationError json_error;
+
+		serializeJson(doc, payload);
+
+		if (!https.begin(wifi_client, host, host_port, path)) {
+			Serial.printf("failed connecting to %s%S", host, host_port);
+			Serial.println();
+			return false;
+		}
+
+		status_code = https.POST(payload);
+		if (status_code != 200) {
+			Serial.printf("status code %d", status_code);
+			Serial.println();
+			return false;
+		}
+		return true;
+	}
 }
