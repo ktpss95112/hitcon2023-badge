@@ -8,7 +8,7 @@ WINDOW_SIZE = (800, 800)
 ARENA_SIZE = (800, 800)
 BACKGROUND_COLOR = pg.Color("black")
 PLAYER_COLOR = pg.Color("green")
-OBSTACLE_COLOR = pg.Color("magenta")
+OBSTACLE_COLOR = pg.Color("white")
 PLAYER_LINE_COLOR = {
     "move": pg.Color("lightgoldenrod"),
     "jump": pg.Color("lightgoldenrod4"),
@@ -42,9 +42,10 @@ OBSTACLE_INIT_RECT = [
         2 * OBSTACLE_HEIGHT,
     ) for w in (2,4,6)
 ] # difference width obstacles
-PLAYER_SPEED = -300
+PLAYER_SPEED = -250
+PLAYER_MAX_JUMP = 5
 OBSTACLE_SPEED = 200
-GRAVITY = 400
+GRAVITY = 300
 ACCELERATE_BAND = 1e-2
 # speed up
 NEXT_STAGE_SCORE = 10 * FPS

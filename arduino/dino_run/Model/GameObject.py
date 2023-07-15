@@ -109,21 +109,40 @@ class Player(_GameObject):
         self.gravity = Const.GRAVITY
         self.status = "move"
         self.render_tick = 0
+        self.now_jump = 0
 
-    def jump(self):
+    def jump(self, jump_cnt):
         if self.y >= Const.ARENA_SIZE[1] - self.height - Const.ACCELERATE_BAND:
             self.speed.y += Const.PLAYER_SPEED
             self.status = "jump"
+            self.now_jump = 1
+        # still up
+        if jump_cnt > self.now_jump and self.speed.y < 0:
+            self.speed.y += Const.PLAYER_SPEED // Const.PLAYER_MAX_JUMP * 2 // 3 * (jump_cnt - self.now_jump)
+            self.now_jump = jump_cnt
 
-    def clip_speed(self):
+    def tick(self, speedup=1, reader=None):
+        self.basic_tick(speedup, reader)
+
+    def clip_speed(self, reader):
         if self.position.y == Const.ARENA_SIZE[1] - self.height:
             self.speed.y = 0
-            if "jump" == self.status:
+            self.gravity = Const.GRAVITY
+            if self.status == 'jump':
                 self.status = "move"
                 self.render_tick = 0
+                self.now_jump = 0
+                # TODO: it's dirty but waiting for refactor
+                if reader:
+                    reader.initialize()
 
-    def basic_tick(self, speedup):
-        super().basic_tick(speedup)
+    def basic_tick(self, speedup, reader):
+        self.speed.y += self.gravity / Const.FPS * speedup
+        self.position += self.speed / Const.FPS * speedup
+
+        self.clip_position()
+        self.clip_speed(reader)
+
         self.render_tick += 1
 
 
