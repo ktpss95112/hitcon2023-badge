@@ -180,7 +180,7 @@ namespace game {
 		DynamicJsonDocument doc(cur_len * 3);
 		doc["emoji_list"] = data;
 		doc["show"] = true;
-		post_json(doc, path.c_str());
+		network::post_json(doc, path.c_str());
 		erase_card();
 	}
 

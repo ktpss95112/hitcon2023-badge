@@ -23,6 +23,7 @@ namespace network {
 
 	void setup();
 	bool get_json(DynamicJsonDocument &doc, const char *path);
+	bool post_json(DynamicJsonDocument &doc, const char *path);
 };
 
 #endif

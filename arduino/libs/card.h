@@ -15,6 +15,7 @@ namespace card {
 	bool legal_new_card();
 	int pread(byte *buf, int nbyte, int offset);
 	int pwrite(byte *buf, int nbyte, int offset);
+	bool read_uuid(byte *buf);
 }
 
 #endif
