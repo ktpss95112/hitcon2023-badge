@@ -12,6 +12,7 @@ dependencies = [
     "pymongo>=4.4.0",
     "python-dotenv>=1.0.0",
     "pytest>=7.4.0",
+    "requests>=2.31.0",
 ]
 requires-python = ">=3.10"
 license = {text = "MIT"}
