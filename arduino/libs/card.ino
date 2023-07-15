@@ -166,4 +166,9 @@ namespace card {
 		res = read_block(buf, 0, 0, BLKSIZE);
 		return res;
 	}
+
+	void done() {
+		mfrc522.PICC_HaltA();
+		mfrc522.PCD_StopCrypto1();
+	}
 }

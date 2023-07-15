@@ -190,17 +190,20 @@ namespace game {
 		clock_housekeeping();
 		timetable_housekeeping();
 		write_card();
+		card::done();
 	}
 
 	void eraser_loop() {
 		if (!card::legal_new_card())
 			return;
 		erase_card();
+		card::done();
 	}
 
 	void flusher_loop() {
 		if (!card::legal_new_card())
 			return;
 		flush_card();
+		card::done();
 	}
 }

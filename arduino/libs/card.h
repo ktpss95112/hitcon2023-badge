@@ -16,6 +16,7 @@ namespace card {
 	int pread(byte *buf, int nbyte, int offset);
 	int pwrite(byte *buf, int nbyte, int offset);
 	bool read_uuid(byte *buf);
+	void done();
 }
 
 #endif
