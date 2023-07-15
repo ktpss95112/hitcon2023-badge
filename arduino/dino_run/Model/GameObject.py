@@ -118,7 +118,13 @@ class Player(_GameObject):
             self.now_jump = 1
         # still up
         if jump_cnt > self.now_jump and self.speed.y < 0:
-            self.speed.y += Const.PLAYER_SPEED // Const.PLAYER_MAX_JUMP * 2 // 3 * (jump_cnt - self.now_jump)
+            self.speed.y += (
+                Const.PLAYER_SPEED
+                // Const.PLAYER_MAX_JUMP
+                * 2
+                // 3
+                * (jump_cnt - self.now_jump)
+            )
             self.now_jump = jump_cnt
 
     def tick(self, speedup=1, reader=None):
@@ -128,7 +134,7 @@ class Player(_GameObject):
         if self.position.y == Const.ARENA_SIZE[1] - self.height:
             self.speed.y = 0
             self.gravity = Const.GRAVITY
-            if self.status == 'jump':
+            if self.status == "jump":
                 self.status = "move"
                 self.render_tick = 0
                 self.now_jump = 0
