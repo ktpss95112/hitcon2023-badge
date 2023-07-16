@@ -1,6 +1,7 @@
 from datetime import datetime
+from functools import wraps
 from numbers import Number
-from typing import TypedDict
+from typing import Callable, ParamSpec, TypedDict
 
 import requests
 
@@ -21,6 +22,25 @@ class EmojiDict(TypedDict):
     timestamp: datetime
 
 
+P = ParamSpec("P")
+
+
+def error_handler(func: Callable[P, requests.Response]) -> Callable[P, bool]:
+    @wraps(func)
+    def inner(*args, **kwargs) -> bool:
+        try:
+            resp = func(*args, **kwargs)
+            if resp.status_code >= 200 and resp.status_code < 300:
+                return True
+            print(f"Dashboard API failed, code={resp.status_code} msg=`{resp.text}`")
+            return False
+        except requests.exceptions.ConnectionError:
+            print("ConnectionRefusedError to dashboard backend")
+            return False
+
+    return inner
+
+
 class Dashboard:
     def __init__(self, origin: str, api_key: str) -> None:
         """Get an interface to dashboard backend API.
@@ -36,83 +56,55 @@ class Dashboard:
         self.base_url = f"{origin}/api/v1/badge"
         self.headers = {"X-API-KEY": api_key}
 
-    def response_checker(self, resp: requests.Response) -> bool:
-        if resp.status_code >= 200 and resp.status_code < 300:
-            return True
-        print(f"Dashboard API failed, code={resp.status_code} msg=`{resp.text}`")
-        return False
-
-    def create_or_update_dino(self, card_uid: str, score: Number) -> bool:
-        try:
-            resp = requests.put(
-                f"{self.base_url}/dino/{card_uid}",
-                headers=self.headers,
-                json={"score": score},
-            )
-            return self.response_checker(resp)
-        except requests.exceptions.ConnectionError:
-            print("ConnectionRefusedError to dashboard backend")
-            return False
+    @error_handler
+    def create_or_update_dino(self, card_uid: str, score: Number):
+        return requests.put(
+            f"{self.base_url}/dino/{card_uid}",
+            headers=self.headers,
+            json={"score": score},
+        )
 
     def batch_create_or_update_dinos(self, dinos: list[DinoDict]) -> bool:
         return all(
-            list(
-                map(
-                    lambda dino: self.create_or_update_dino(
-                        dino["card_uid"], dino["score"]
-                    ),
-                    dinos,
-                )
-            )
+            [
+                self.create_or_update_dino(dino["card_uid"], dino["score"])
+                for dino in dinos
+            ]
         )
 
+    @error_handler
     def create_or_update_popcat(self, card_uid: str, score: Number) -> bool:
-        try:
-            resp = requests.put(
-                f"{self.base_url}/popcat/{card_uid}",
-                headers=self.headers,
-                json={"score": score},
-            )
-            return self.response_checker(resp)
-        except requests.exceptions.ConnectionError:
-            print("ConnectionRefusedError to dashboard backend")
-            return False
+        return requests.put(
+            f"{self.base_url}/popcat/{card_uid}",
+            headers=self.headers,
+            json={"score": score},
+        )
 
     def batch_create_or_update_popcats(self, popcats: list[PopcatDict]) -> bool:
         return all(
-            list(
-                map(
-                    lambda cat: self.create_or_update_dino(
-                        cat["card_uid"], cat["score"]
-                    ),
-                    popcats,
-                )
-            )
+            [
+                self.create_or_update_popcat(cat["card_uid"], cat["score"])
+                for cat in popcats
+            ]
         )
 
+    @error_handler
     def create_emoji(self, card_uid: str, content: str, timestamp: datetime) -> bool:
-        try:
-            resp = requests.post(
-                f"{self.base_url}/emoji/{card_uid}",
-                headers=self.headers,
-                json={
-                    "content": content,
-                    "timestamp": timestamp.astimezone().isoformat(),
-                },
-            )
-            return self.response_checker(resp)
-        except requests.exceptions.ConnectionError:
-            print("ConnectionRefusedError to dashboard backend")
-            return False
+        return requests.post(
+            f"{self.base_url}/emoji/{card_uid}",
+            headers=self.headers,
+            json={
+                "content": content,
+                "timestamp": timestamp.astimezone().isoformat(),
+            },
+        )
 
     def batch_create_emojis(self, emojis: list[EmojiDict]) -> bool:
         return all(
-            list(
-                map(
-                    lambda emoji: self.create_emoji(
-                        emoji["card_uid"], emoji["content"], emoji["timestamp"]
-                    ),
-                    emojis,
+            [
+                self.create_emoji(
+                    emoji["card_uid"], emoji["content"], emoji["timestamp"]
                 )
-            )
+                for emoji in emojis
+            ]
         )
