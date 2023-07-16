@@ -57,7 +57,7 @@ class Dashboard:
         self.headers = {"X-API-KEY": api_key}
 
     @error_handler
-    def create_or_update_dino(self, card_uid: str, score: Number):
+    def create_or_update_dino(self, card_uid: str, score: Number) -> requests.Response:
         return requests.put(
             f"{self.base_url}/dino/{card_uid}",
             headers=self.headers,
@@ -73,7 +73,9 @@ class Dashboard:
         )
 
     @error_handler
-    def create_or_update_popcat(self, card_uid: str, score: Number) -> bool:
+    def create_or_update_popcat(
+        self, card_uid: str, score: Number
+    ) -> requests.Response:
         return requests.put(
             f"{self.base_url}/popcat/{card_uid}",
             headers=self.headers,
@@ -89,7 +91,9 @@ class Dashboard:
         )
 
     @error_handler
-    def create_emoji(self, card_uid: str, content: str, timestamp: datetime) -> bool:
+    def create_emoji(
+        self, card_uid: str, content: str, timestamp: datetime
+    ) -> requests.Response:
         return requests.post(
             f"{self.base_url}/emoji/{card_uid}",
             headers=self.headers,
