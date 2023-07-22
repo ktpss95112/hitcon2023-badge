@@ -1,0 +1,17 @@
+[project]
+name = "dino_pc"
+version = "0.0.0"
+description = "Ddino game PC end"
+authors = [
+    {name = "HITCOM CMT 2023", email = "service@hitcon.org"},
+]
+dependencies = [
+    "pyserial-asyncio>=0.6",
+    "aiohttp>=3.8.5",
+]
+requires-python = ">=3.10"
+readme = "README.md"
+license = {text = "MIT"}
+
+[tool.pdm.scripts]
+start = "python -m dino_pc.main"
