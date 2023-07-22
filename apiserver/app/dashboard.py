@@ -30,7 +30,7 @@ def error_handler(func: Callable[P, requests.Response]) -> Callable[P, bool]:
     def inner(*args, **kwargs) -> bool:
         try:
             resp = func(*args, **kwargs)
-            if resp.status_code >= 200 and resp.status_code < 300:
+            if 200 <= resp.status_code < 300:
                 return True
             print(f"Dashboard API failed, code={resp.status_code} msg=`{resp.text}`")
             return False
