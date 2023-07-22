@@ -48,6 +48,10 @@ class DB(abc.ABC):
         pass
 
     @abc.abstractmethod
+    async def del_all_popcat(self) -> list[PopcatRecord]:
+        pass
+
+    @abc.abstractmethod
     async def get_dinorun_by_user(self, user: User) -> DinorunRecord:
         pass
 
@@ -57,6 +61,10 @@ class DB(abc.ABC):
 
     @abc.abstractmethod
     async def get_all_dinorun(self) -> list[DinorunRecord]:
+        pass
+
+    @abc.abstractmethod
+    async def del_all_dinorun(self) -> list[DinorunRecord]:
         pass
 
 
@@ -108,6 +116,9 @@ class MongoDB(DB):
             PopcatRecord.parse_obj(obj) for obj in self.__popcat_record_table.find()
         ]
 
+    async def del_all_popcat(self) -> list[PopcatRecord]:
+        self.__popcat_record_table.drop()
+
     async def get_dinorun_by_user(self, user: User) -> DinorunRecord:
         obj = self.__dinorun_record_table.find_one({"card_uid": user.card_uid})
         if obj is None:
@@ -122,6 +133,9 @@ class MongoDB(DB):
         return [
             DinorunRecord.parse_obj(obj) for obj in self.__dinorun_record_table.find()
         ]
+
+    async def del_all_dinorun(self) -> list[DinorunRecord]:
+        self.__dinorun_record_table.drop()
 
 
 # class FilesystemDB(DB):
@@ -214,7 +228,7 @@ def __new_mongodb() -> MongoDB:
     return MongoDB(client=client)
 
 
-def init_db():
+def connect_db():
     global __db
     __db = __new_mongodb()
 

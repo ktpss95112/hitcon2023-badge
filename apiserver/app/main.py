@@ -3,7 +3,7 @@ from datetime import datetime
 
 from fastapi import FastAPI
 
-from .db import init_db
+from .db import connect_db
 from .router import cardreader, dinorun, popcat, tap, user
 
 
@@ -12,7 +12,7 @@ async def lifespan(app: FastAPI):
     """
     Create DB before the app starts.
     """
-    init_db()
+    connect_db()
     yield
     # TODO: cleanup db
 
