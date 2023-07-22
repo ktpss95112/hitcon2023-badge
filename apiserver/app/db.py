@@ -87,7 +87,9 @@ class MongoDB(DB):
         return User.parse_obj(obj)
 
     async def write_user(self, user: User):
-        self.__user_table.insert_one(dict(user))
+        self.__user_table.replace_one(
+            {"card_uid": user.card_uid}, dict(user), upsert=True
+        )
 
     async def get_reader_by_id(self, reader_id: str) -> CardReader | None:
         obj = self.__card_reader_table.find_one({"id": reader_id})
@@ -96,7 +98,9 @@ class MongoDB(DB):
         return CardReader.parse_obj(obj)
 
     async def write_reader(self, reader: CardReader):
-        self.__card_reader_table.insert_one(dict(reader))
+        self.__card_reader_table.replace_one(
+            {"id": reader.id}, dict(reader), upsert=True
+        )
 
     async def get_all_reader(self) -> list[CardReader]:
         return [CardReader.parse_obj(obj) for obj in self.__card_reader_table.find()]
@@ -109,7 +113,9 @@ class MongoDB(DB):
         return PopcatRecord.parse_obj(obj)
 
     async def write_popcat(self, record: PopcatRecord):
-        self.__popcat_record_table.insert_one(dict(record))
+        self.__popcat_record_table.replace_one(
+            {"card_uid": record.card_uid}, dict(record), upsert=True
+        )
 
     async def get_all_popcat(self) -> list[PopcatRecord]:
         return [
@@ -127,7 +133,9 @@ class MongoDB(DB):
         return DinorunRecord.parse_obj(obj)
 
     async def write_dinorun(self, record: DinorunRecord):
-        self.__dinorun_record_table.insert_one(dict(record))
+        self.__dinorun_record_table.replace_one(
+            {"card_uid": record.card_uid}, dict(record), upsert=True
+        )
 
     async def get_all_dinorun(self) -> list[DinorunRecord]:
         return [

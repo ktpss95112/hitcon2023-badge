@@ -73,6 +73,9 @@ data = {
             name="sponsor emoji flush reader",
             type=model.CardReaderType.SPONSOR_FLUSH,
         ),
+        "dinorun reader": model.CardReader(
+            id="reader4", name="dinorun reader", type=model.CardReaderType.DINORUN
+        ),
     },
 }
 
