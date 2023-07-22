@@ -66,4 +66,4 @@ class DinorunRecord(BaseModel):
         self.record.append((time, score))
 
     def get_best_score(self) -> float:
-        return max((s[1] for s in self.record), default=0)
+        return max((score for time, score in self.record), default=0)

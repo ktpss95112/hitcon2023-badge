@@ -30,7 +30,7 @@ def test_popcat():
         user2 = data["user"]["user2"]
         user3 = data["user"]["user3"]
 
-        scores = [7, 10, -1, 5]
+        scores = [7, -1, 5]
         users = [user1, user2, user3]
         for score, user in zip(scores, users):
             # test push score
@@ -55,9 +55,48 @@ def test_popcat():
 
         # test all
         resp = client.get(f"/popcat/")
-        assert resp.status_code == 200, resp.status_code
+        assert resp.status_code == 200
         rj = resp.json()
         for score, user in zip(scores, users):
             assert rj[user.card_uid] == score
+            del rj[user.card_uid]
+        assert len(rj) == 0
+
+
+@ensure_db
+def test_dinorun():
+    with TestClient(app) as client:
+        reader = data["card reader"]["dinorun reader"]
+        user1 = data["user"]["user1"]
+        user2 = data["user"]["user2"]
+        user3 = data["user"]["user3"]
+        all_users = [user1, user2, user3]
+
+        scores = [7.5, 100.235, 5, 300.0, 0.1]
+        users = [user1, user2, user3, user1, user2]
+        expecteds = [7.5, 100.235, 5, 300.0, 100.235]
+        for score, user, expected in zip(scores, users, expecteds):
+            # test push score
+            print(f"/dinorun/{user.card_uid}?score={score}")
+            resp = client.post(f"/dinorun/{user.card_uid}?score={score}")
+            assert resp.status_code == 200
+            rj = resp.json()
+            assert rj == True
+
+            # test get score
+            resp = client.get(f"/dinorun/{user.card_uid}")
+            assert resp.status_code == 200
+            rj = resp.json()
+            assert rj == expected
+
+        # test all
+        resp = client.get(f"/dinorun/")
+        assert resp.status_code == 200
+        rj = resp.json()
+        for user in all_users:
+            highest_score = max(
+                score for score, user_ in zip(scores, users) if user_ == user
+            )
+            assert rj[user.card_uid] == highest_score
             del rj[user.card_uid]
         assert len(rj) == 0
