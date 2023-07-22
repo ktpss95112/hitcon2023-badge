@@ -13,9 +13,9 @@ def ensure_db(func):
     @functools.wraps(func)
     def wrap(*args, **kwargs):
         global db_initialized
-        if db_initialized:
+        if not db_initialized:
             # TODO: create a testing db
-            asyncio.run(main)
+            asyncio.run(main())
             db_initialized = True
         return func(*args, **kwargs)
 
@@ -29,6 +29,35 @@ def test_popcat():
         user1 = data["user"]["user1"]
         user2 = data["user"]["user2"]
         user3 = data["user"]["user3"]
-        resp = client.post(f"/tap/popcat/{reader.id}/user/{user1.card_uid}?incr=5")
+
+        scores = [7, 10, -1, 5]
+        users = [user1, user2, user3]
+        for score, user in zip(scores, users):
+            # test push score
+            resp = client.post(
+                f"/tap/popcat/{reader.id}/user/{user.card_uid}?incr={score}"
+            )
+            assert resp.status_code == 200
+            rj = resp.json()
+            assert rj[0] == True and isinstance(rj[1], int)
+
+            # test get score
+            resp = client.get(f"/popcat/{user.card_uid}")
+            assert resp.status_code == 200
+            rj = resp.json()
+            assert rj == score
+
+        # test if the cooldown works
+        resp = client.post(f"/tap/popcat/{reader.id}/user/{user.card_uid}?incr={score}")
         assert resp.status_code == 200
-        assert resp.json()[0] == True and isinstance(resp.json()[1], int)
+        rj = resp.json()
+        assert rj[0] == False and isinstance(rj[1], int)
+
+        # test all
+        resp = client.get(f"/popcat/")
+        assert resp.status_code == 200, resp.status_code
+        rj = resp.json()
+        for score, user in zip(scores, users):
+            assert rj[user.card_uid] == score
+            del rj[user.card_uid]
+        assert len(rj) == 0

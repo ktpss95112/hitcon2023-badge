@@ -87,12 +87,22 @@ async def create_readers(db_: db.DB):
         await db_.write_reader(reader)
 
 
+async def clear_popcat(db_: db.DB):
+    await db_.del_all_popcat()
+
+
+async def clear_dinorun(db_: db.DB):
+    await db_.del_all_dinorun()
+
+
 async def main():
-    db.init_db()
+    db.connect_db()
     db_ = await db.get_db()
 
     await create_users(db_)
     await create_readers(db_)
+    await clear_popcat(db_)
+    await clear_dinorun(db_)
 
 
 if __name__ == "__main__":
