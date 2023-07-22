@@ -1,6 +1,7 @@
 # our project
 .db
 .pdm-python
+.pdm-build/
 
 
 # Byte-compiled / optimized / DLL files
