@@ -71,7 +71,7 @@ async def main():
     app.add_routes(
         [
             web.get("/ws", websocket_handler),
-            web.static("/", "public", show_index=True),
+            web.static("/", Path(__file__, "..", "public"), show_index=True),
         ]
     )
 
