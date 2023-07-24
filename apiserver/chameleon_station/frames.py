@@ -21,8 +21,8 @@ class CommandFrame:
         self.show_qrcode_button = ttk.Button(self.frame)
         self.show_qrcode_button["text"] = "Show QR Code"
         self.show_qrcode_button["command"] = show_qrcode_callback
-        self.show_qrcode_button.state(["disabled"])
         self.show_qrcode_button.grid()
+        self.disable_qrcode_button()
 
     def enable_qrcode_button(self):
         self.show_qrcode_button.state(["!disabled"])
@@ -32,10 +32,13 @@ class CommandFrame:
 
 
 class EditorFrame:
-    def __init__(self) -> None:
-        pass
+    def __init__(self, parent) -> None:
+        self.frame = ttk.Frame(parent)
+        self.frame["padding"] = 5
+        self.frame.grid(column=0, row=0, sticky=(N, E, W))
+        parent.columnconfigure(0, weight=1)
 
-    def update_content(self):
+    def update_content(self, data: bytes):
         pass
 
     def clear_content(self):
