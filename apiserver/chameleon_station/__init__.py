@@ -1,7 +1,6 @@
 """
 TODO: features
 * scan card and show qrcode for registering DaDi game
-* scan card and show hex content (like xxd)
 * modify card content arbitrarily
 * modify card content (for a specific game)
 """
@@ -13,6 +12,7 @@ import PIL.ImageTk
 import qrcode
 
 from . import frames
+from .card import card
 from .config import config
 
 
@@ -31,10 +31,11 @@ class ChameleonStation:
     def command_scan_card(self):
         # TODO: read from arduino
         # TODO: progress bar
-        self.data = data = b"ABCD".ljust(
-            config.NUM_SECTOR * config.NUM_BLOCK * config.BLOCK_SIZE, b"\x00"
-        )
-        success = True
+        try:
+            data = card.read_all()
+            success = True
+        except:
+            success = False
 
         if success:
             self.editor_frame.update_content(data)
