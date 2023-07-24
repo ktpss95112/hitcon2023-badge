@@ -1,3 +1,4 @@
+import struct
 from tkinter import *
 from tkinter import ttk
 from typing import Callable
@@ -40,17 +41,65 @@ class EditorFrame:
         self.frame.grid(column=0, row=1, sticky=NSEW)
         parent.columnconfigure(0, weight=1)
 
-        self.text = Text(self.frame)
+        self.setup_hex_view_frame()
+        self.setup_editor_frame()
+
+    def setup_hex_view_frame(self):
+        self.hex_view_frame = ttk.Frame(self.frame)
+        self.hex_view_frame.grid(column=0, row=0, sticky=NSEW)
+
+        self.text = Text(self.hex_view_frame)
         self.text.grid(column=0, row=0, sticky=NSEW)
 
-        self.update_content(
-            b"\x00" * config.NUM_SECTOR * config.NUM_BLOCK * config.BLOCK_SIZE
-        )
+        self.clear_content()
 
-        self.scrollbar = ttk.Scrollbar(self.frame, orient=VERTICAL)
-        self.scrollbar["command"] = self.text.yview
-        self.text["yscrollcommand"] = self.scrollbar.set
-        self.scrollbar.grid(column=1, row=0, sticky=NS)
+        scrollbar = ttk.Scrollbar(self.hex_view_frame, orient=VERTICAL)
+        scrollbar["command"] = self.text.yview
+        self.text["yscrollcommand"] = scrollbar.set
+        scrollbar.grid(column=1, row=0, sticky=NS)
+
+    def setup_editor_frame(self):
+        self.editor_frame = ttk.Frame(self.frame)
+        self.editor_frame["padding"] = 5
+        self.editor_frame.grid(column=1, row=0, sticky=NSEW)
+
+        self.inspect_data = StringVar()
+        input_box = ttk.Entry(self.editor_frame, textvariable=self.inspect_data)
+        input_box["font"] = "TkFixedFont"
+        input_box.grid(column=0, row=0)
+
+        output_label = ttk.Label(self.editor_frame, anchor=NW)
+        output_label["font"] = "TkFixedFont"
+        output_label.grid(column=0, row=1, sticky=NSEW)
+
+        def on_change(*args):
+            # prepare data
+            try:
+                data = self.inspect_data.get().replace(" ", "")
+                data_bytes = bytes.fromhex(data).ljust(4, b"\x00")
+            except:
+                data_bytes = b"\x00" * 4
+            try:
+                decoded = data_bytes.decode()
+            except UnicodeDecodeError:
+                decoded = "<error>"
+
+            # prepare output
+            output_label[
+                "text"
+            ] = f"""
+uint32: {struct.unpack('<I', data_bytes[0:4])[0]:>19d}
+ int32: {struct.unpack('<i', data_bytes[0:4])[0]:>19d}
+uint16: {struct.unpack('<H', data_bytes[0:2])[0]:>9d} {struct.unpack('<H', data_bytes[2:4])[0]:>9d}
+ int16: {struct.unpack('<h', data_bytes[0:2])[0]:>9d} {struct.unpack('<h', data_bytes[2:4])[0]:>9d}
+ uint8: {struct.unpack('<B', data_bytes[0:1])[0]:>4d} {struct.unpack('<B', data_bytes[1:2])[0]:>4d} {struct.unpack('<B', data_bytes[2:3])[0]:>4d} {struct.unpack('<B', data_bytes[3:4])[0]:>4d}
+  int8: {struct.unpack('<b', data_bytes[0:1])[0]:>4d} {struct.unpack('<b', data_bytes[1:2])[0]:>4d} {struct.unpack('<b', data_bytes[2:3])[0]:>4d} {struct.unpack('<b', data_bytes[3:4])[0]:>4d}
+
+string: {decoded}
+"""
+
+        self.inspect_data.trace_add("write", on_change)
+        self.inspect_data.set("f0 9f 98 8b")
 
     def update_content(self, data: bytes):
         # ensure the size of the data is correct
@@ -100,4 +149,5 @@ class EditorFrame:
         self.text.replace("1.0", "end", content)
 
     def clear_content(self):
-        pass
+        self.data = b"\x00" * config.NUM_SECTOR * config.NUM_BLOCK * config.BLOCK_SIZE
+        self._update_content()
