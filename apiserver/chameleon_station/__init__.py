@@ -30,6 +30,7 @@ class ChameleonStation:
 
     def command_scan_card(self):
         # TODO: read from arduino
+        # TODO: progress bar
         self.data = data = b"ABCD".ljust(
             config.NUM_SECTOR * config.NUM_BLOCK * config.BLOCK_SIZE, b"\x00"
         )
