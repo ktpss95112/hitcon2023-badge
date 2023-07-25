@@ -43,7 +43,7 @@ class EditorFrame:
         parent.columnconfigure(0, weight=1)
 
         self.setup_hex_view_frame()
-        self.setup_editor_frame()
+        self.setup_inspect_frame()
         self.set_selection_action()
 
     def setup_hex_view_frame(self):
@@ -81,17 +81,17 @@ class EditorFrame:
         self.text["yscrollcommand"] = scrollbar.set
         scrollbar.grid(column=1, row=0, sticky=NS)
 
-    def setup_editor_frame(self):
-        self.editor_frame = ttk.Frame(self.frame)
-        self.editor_frame["padding"] = 5
-        self.editor_frame.grid(column=1, row=0, sticky=NSEW)
+    def setup_inspect_frame(self):
+        self.inspect_frame = ttk.Frame(self.frame)
+        self.inspect_frame["padding"] = 5
+        self.inspect_frame.grid(column=1, row=0, sticky=NSEW)
 
         self.inspect_data = StringVar()
-        input_box = ttk.Entry(self.editor_frame, textvariable=self.inspect_data)
+        input_box = ttk.Entry(self.inspect_frame, textvariable=self.inspect_data)
         input_box["font"] = "TkFixedFont"
         input_box.grid(column=0, row=0)
 
-        output_label = ttk.Label(self.editor_frame, anchor=NW)
+        output_label = ttk.Label(self.inspect_frame, anchor=NW)
         output_label["font"] = "TkFixedFont"
         output_label.grid(column=0, row=1, sticky=NSEW)
 
