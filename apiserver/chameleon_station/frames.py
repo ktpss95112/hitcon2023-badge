@@ -1,7 +1,8 @@
 import struct
+from collections import UserString
 from tkinter import *
 from tkinter import ttk
-from typing import Callable
+from typing import Callable, Literal
 
 from .config import config
 
@@ -152,18 +153,20 @@ string: {decoded}
         self._update_content(data)
 
     def _update_content(self, data: bytes):
-        content = ""
+        self.text.delete("1.0", "end")
         chunk_size = config.BLOCK_SIZE // config.DISPLAY_CHUNK
 
         # prepare header
-        content += f"sector block  "
-        content += "  ".join(
+        header_content = ""
+        header_content += f"sector block  "
+        header_content += "  ".join(
             [
                 " ".join([f"{i:2d}" for i in range(start, start + chunk_size)])
                 for start in range(0, config.BLOCK_SIZE, chunk_size)
             ]
         )
-        content += "\n\n"
+        header_content += "\n\n"
+        self.text.insert("1.0", header_content)
 
         # prepare content
         for i_sector in range(config.NUM_SECTOR):
@@ -174,23 +177,100 @@ string: {decoded}
                 row_data = data[start:end]
 
                 if i_block == 0:
-                    content += f"{i_sector:^6d} {i_block:^5d}  "
+                    self.text.insert(END, f"{i_sector:^6d} {i_block:^5d}  ")
                 else:
-                    content += f"{'':^6} {i_block:^5d}  "
+                    self.text.insert(END, f"{'':^6} {i_block:^5d}  ")
 
                 chunks = [
                     row_data[i_byte : i_byte + chunk_size]
                     for i_byte in range(0, config.BLOCK_SIZE, chunk_size)
                 ]
-                content += "  ".join(
-                    [" ".join([f"{byte:02x}" for byte in chunk]) for chunk in chunks]
-                )
-                content += "\n"
-        content = content.strip("\n")
+                for i_chunk, chunk in enumerate(chunks):
+                    # content
+                    chunk_tag = ChunkTag(i_sector, i_block, i_chunk)
+                    self.text.insert(
+                        END, " ".join([f"{byte:02x}" for byte in chunk]), (chunk_tag,)
+                    )
+                    self.text.insert(
+                        END, ("\n" if i_chunk == len(chunks) - 1 else "  ")
+                    )
 
-        self.text.replace("1.0", "end", content)
+                    # handler
+                    def gen_event_handler(
+                        chunk_tag: ChunkTag, type_: Literal["enter", "leave", "click"]
+                    ):
+                        def handler(*args):
+                            if type_ == "click":
+                                start, end, *_ = self.text.tag_ranges(chunk_tag)
+                                content = self.text.get(start, end)
+                                self.inspect_data.set(content)
+                            else:
+                                bg_color = "" if type_ == "leave" else "yellow"
+                                self.text.tag_configure(chunk_tag, background=bg_color)
+
+                        return handler
+
+                    # setup handler
+                    self.text.tag_bind(
+                        chunk_tag, "<Enter>", gen_event_handler(chunk_tag, "enter")
+                    )
+                    self.text.tag_bind(
+                        chunk_tag, "<Leave>", gen_event_handler(chunk_tag, "leave")
+                    )
+                    self.text.tag_bind(
+                        chunk_tag, "<Button-1>", gen_event_handler(chunk_tag, "click")
+                    )
 
     def clear_content(self):
         self._update_content(
             b"\x00" * config.NUM_SECTOR * config.NUM_BLOCK * config.BLOCK_SIZE
         )
+
+
+# Just a utility class.
+class ChunkTag(UserString):
+    def __init__(self, *args) -> None:
+        """
+        ChunkTag(tag_name)
+        ChunkTag(i_sector, i_block, i_chunk)
+        """
+
+        if len(args) == 1:
+            i_sector, i_block, i_chunk = map(int, args[0].split("."))
+        elif len(args) == 3:
+            i_sector, i_block, i_chunk = args
+        else:
+            raise ValueError("Invalid arguments")
+
+        self._i_sector = i_sector
+        self._i_block = i_block
+        self._i_chunk = i_chunk
+        self.data = f"{self._i_sector}.{self._i_block}.{self._i_chunk}"
+        super().__init__(f"{i_sector}.{i_block}.{i_chunk}")
+
+    @property
+    def i_sector(self):
+        return self._i_sector
+
+    @property
+    def i_block(self):
+        return self._i_block
+
+    @property
+    def i_chunk(self):
+        return self._i_chunk
+
+    @i_sector.setter
+    def i_sector(self, i_sector):
+        self._i_sector = i_sector
+        self.data = f"{self._i_sector}.{self._i_block}.{self._i_chunk}"
+
+    @i_block.setter
+    def i_block(self, i_block):
+        self._i_block = i_block
+        self.data = f"{self._i_sector}.{self._i_block}.{self._i_chunk}"
+
+    @i_chunk.setter
+    def i_chunk(self, i_chunk):
+        self._i_chunk = i_chunk
+        self.data = f"{self._i_sector}.{self._i_block}.{self._i_chunk}"
