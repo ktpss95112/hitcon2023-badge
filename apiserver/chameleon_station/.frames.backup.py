@@ -1,6 +1,7 @@
 import struct
 from tkinter import *
 from tkinter import ttk
+from tkinter.scrolledtext import ScrolledText
 from typing import Callable
 
 from .config import config
@@ -68,17 +69,51 @@ class EditorFrame:
         self.frame.rowconfigure(0, weight=1)
         self.frame.columnconfigure(0, weight=1)
 
-        self.text = Text(self.hex_view_frame)
-        self.text.grid(column=0, row=0, sticky=NSEW)
+        self.hex_view_frame_content = ScrolledText(self.hex_view_frame)
+        self.hex_view_frame_content["state"] = "disabled"
+        self.hex_view_frame_content["background"] = "white"
+        self.hex_view_frame_content.grid(column=0, row=0, sticky=NSEW)
         self.hex_view_frame.rowconfigure(0, weight=1)
         self.hex_view_frame.columnconfigure(0, weight=1)
+        # https://stackoverflow.com/a/69936846
+        # TODO: bug: cannot scroll when mouse on Frame, but can scroll when on ScrolledText
+        inner_frame = ttk.Frame(self.hex_view_frame_content)
+        inner_frame.grid()
+        self.hex_view_frame_content.window_create("1.0", window=inner_frame)
+
+        self.hex_view_labels = []
+
+        def create_label(text_content, column, row):
+            label = ttk.Label(inner_frame)
+            label["font"] = "TkFixedFont"
+            label["text"] = text_content
+            label["background"] = "white"
+            label.grid(column=column, row=row)
+            return label
+
+        # table header
+        # TODO: make bold and color
+        headers = ["sector", "block", *(f"{i:2d}" for i in range(config.BLOCK_SIZE))]
+        self.hex_view_labels.append(
+            [create_label(headers[i], column=i, row=0) for i in range(len(headers))]
+        )
+
+        # table content
+        for i_sector in range(config.NUM_SECTOR):
+            for i_block in range(config.NUM_BLOCK):
+                row_index = i_sector * config.NUM_BLOCK + i_block + 1
+
+                sector_label = create_label(
+                    i_sector if i_block == 0 else "", column=0, row=row_index
+                )
+                block_label = create_label(i_block, column=1, row=row_index)
+                self.hex_view_labels.append([sector_label, block_label])
+
+                for i_byte in range(config.BLOCK_SIZE):
+                    label = create_label("00", column=2 + i_byte, row=row_index)
+                    self.hex_view_labels[row_index].append(label)
 
         self.clear_content()
-
-        scrollbar = ttk.Scrollbar(self.hex_view_frame, orient=VERTICAL)
-        scrollbar["command"] = self.text.yview
-        self.text["yscrollcommand"] = scrollbar.set
-        scrollbar.grid(column=1, row=0, sticky=NS)
 
     def setup_editor_frame(self):
         self.editor_frame = ttk.Frame(self.frame)
@@ -134,43 +169,15 @@ string: {decoded}
         self._update_content(data)
 
     def _update_content(self, data: bytes):
-        content = ""
-        chunk_size = config.BLOCK_SIZE // config.DISPLAY_CHUNK
+        for row_index in range(1, 1 + config.NUM_SECTOR * config.NUM_BLOCK):
+            start = (row_index - 1) * config.BLOCK_SIZE
+            end = row_index * config.BLOCK_SIZE
+            row_data = data[start:end]
 
-        # prepare header
-        content += f"sector block  "
-        content += "  ".join(
-            [
-                " ".join([f"{i:2d}" for i in range(start, start + chunk_size)])
-                for start in range(0, config.BLOCK_SIZE, chunk_size)
-            ]
-        )
-        content += "\n\n"
-
-        # prepare content
-        for i_sector in range(config.NUM_SECTOR):
-            for i_block in range(config.NUM_BLOCK):
-                index = i_sector * config.NUM_BLOCK + i_block
-                start = index * config.BLOCK_SIZE
-                end = (index + 1) * config.BLOCK_SIZE
-                row_data = data[start:end]
-
-                if i_block == 0:
-                    content += f"{i_sector:^6d} {i_block:^5d}  "
-                else:
-                    content += f"{'':^6} {i_block:^5d}  "
-
-                chunks = [
-                    row_data[i_byte : i_byte + chunk_size]
-                    for i_byte in range(0, config.BLOCK_SIZE, chunk_size)
-                ]
-                content += "  ".join(
-                    [" ".join([f"{byte:02x}" for byte in chunk]) for chunk in chunks]
-                )
-                content += "\n"
-        content = content.strip("\n")
-
-        self.text.replace("1.0", "end", content)
+            for i_byte in range(config.BLOCK_SIZE):
+                self.hex_view_labels[row_index][i_byte + 2][
+                    "text"
+                ] = f"{row_data[i_byte]:02x}"
 
     def clear_content(self):
         self._update_content(

@@ -20,6 +20,9 @@ class ChameleonStation:
     def __init__(self) -> None:
         self.root = root = Tk()
         root.title("Chameleon Station of Badge Mini Games")
+        root.geometry("1000x800")
+
+        self.data = b"\x00" * config.NUM_SECTOR * config.NUM_BLOCK * config.BLOCK_SIZE
 
         self.command_frame = frames.CommandFrame(
             root,
@@ -32,7 +35,7 @@ class ChameleonStation:
         # TODO: read from arduino
         # TODO: progress bar
         try:
-            data = card.read_all()
+            self.data = data = card.read_all()
             success = True
         except:
             success = False
