@@ -44,6 +44,7 @@ class EditorFrame:
 
         self.setup_hex_view_frame()
         self.setup_editor_frame()
+        self.set_selection_action()
 
     def setup_hex_view_frame(self):
         """
@@ -122,6 +123,23 @@ string: {decoded}
 
         self.inspect_data.trace_add("write", on_change)
         self.inspect_data.set("f0 9f 98 8b")
+
+    def set_selection_action(self):
+        """
+        1. User use cursor to select the text in hex view.
+        2. Inspect data is updated automatically.
+        """
+
+        def update_inspect_data(*args):
+            # If the user do not select anything, just ignore this event.
+            if len(self.text.tag_ranges("sel")) == 0:
+                return
+
+            start, end, *_ = self.text.tag_ranges("sel")
+            content = self.text.get(start, end)
+            self.inspect_data.set(content)
+
+        self.text.bind("<<Selection>>", update_inspect_data)
 
     def update_content(self, data: bytes):
         # ensure the size of the data is correct
