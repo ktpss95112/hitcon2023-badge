@@ -1,7 +1,7 @@
 """
 TODO: features
-* scan card and show qrcode for registering DaDi game
-* modify card content arbitrarily
+* scan card (arduino)
+* modify card content arbitrarily (arduino)
 * modify card content (for a specific game)
 """
 
