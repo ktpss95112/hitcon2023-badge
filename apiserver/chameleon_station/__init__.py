@@ -26,10 +26,12 @@ class ChameleonStation:
 
         self.command_frame = frames.CommandFrame(
             root,
-            scan_card_callback=self.command_scan_card,
-            show_qrcode_callback=self.command_show_qrcode,
+            command_scan_card=self.command_scan_card,
+            command_show_qrcode=self.command_show_qrcode,
         )
-        self.editor_frame = frames.EditorFrame(root)
+        self.editor_frame = frames.EditorFrame(
+            root, command_scan_card=self.command_scan_card
+        )
 
     def command_scan_card(self):
         # TODO: read from arduino

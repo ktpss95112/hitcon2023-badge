@@ -4,12 +4,13 @@ from tkinter import *
 from tkinter import ttk
 from typing import Callable, Literal
 
+from .card import card
 from .config import config
 
 
 class CommandFrame:
     def __init__(
-        self, parent, scan_card_callback: Callable, show_qrcode_callback: Callable
+        self, parent, command_scan_card: Callable, command_show_qrcode: Callable
     ) -> None:
         self.frame = ttk.Frame(parent)
         self.frame["padding"] = 5
@@ -18,13 +19,13 @@ class CommandFrame:
 
         self.scan_card_button = ttk.Button(self.frame)
         self.scan_card_button["text"] = "Scan Card"
-        self.scan_card_button["command"] = scan_card_callback
+        self.scan_card_button["command"] = command_scan_card
         self.scan_card_button.grid(column=0, row=0)
         self.scan_card_button.focus()
 
         self.show_qrcode_button = ttk.Button(self.frame)
         self.show_qrcode_button["text"] = "Show QR Code"
-        self.show_qrcode_button["command"] = show_qrcode_callback
+        self.show_qrcode_button["command"] = command_show_qrcode
         self.show_qrcode_button.grid(column=1, row=0)
         self.disable_qrcode_button()
 
@@ -36,7 +37,7 @@ class CommandFrame:
 
 
 class EditorFrame:
-    def __init__(self, parent) -> None:
+    def __init__(self, parent, command_scan_card: Callable) -> None:
         self.frame = ttk.Frame(parent)
         self.frame["padding"] = 5
         self.frame.grid(column=0, row=1, sticky=NSEW)
@@ -44,7 +45,7 @@ class EditorFrame:
         parent.columnconfigure(0, weight=1)
 
         self.setup_hex_view_frame()
-        self.setup_inspect_frame()
+        self.setup_inspect_frame(command_scan_card)
         self.set_selection_action()
 
     def setup_hex_view_frame(self):
@@ -82,19 +83,29 @@ class EditorFrame:
         self.text["yscrollcommand"] = scrollbar.set
         scrollbar.grid(column=1, row=0, sticky=NS)
 
-    def setup_inspect_frame(self):
+    def setup_inspect_frame(self, command_scan_card: Callable):
         self.inspect_frame = ttk.Frame(self.frame)
         self.inspect_frame["padding"] = 5
         self.inspect_frame.grid(column=1, row=0, sticky=NSEW)
 
-        self.inspect_data = StringVar()
-        input_box = ttk.Entry(self.inspect_frame, textvariable=self.inspect_data)
-        input_box["font"] = "TkFixedFont"
-        input_box.grid(column=0, row=0)
+        self.inspect_read_frame = ttk.Frame(self.inspect_frame)
+        self.inspect_read_frame["padding"] = 5
+        self.inspect_read_frame["borderwidth"] = 2
+        self.inspect_read_frame["relief"] = "solid"
+        self.inspect_read_frame.grid(column=0, row=0, sticky=NSEW)
 
-        output_label = ttk.Label(self.inspect_frame, anchor=NW)
+        title_label = ttk.Label(self.inspect_read_frame, anchor=NW)
+        title_label["text"] = "Data Inspector\n"
+        title_label.grid(column=0, row=0, sticky=NSEW)
+
+        self.inspect_data = StringVar()
+        input_box = ttk.Entry(self.inspect_read_frame, textvariable=self.inspect_data)
+        input_box["font"] = "TkFixedFont"
+        input_box.grid(column=0, row=1)
+
+        output_label = ttk.Label(self.inspect_read_frame)
         output_label["font"] = "TkFixedFont"
-        output_label.grid(column=0, row=1, sticky=NSEW)
+        output_label.grid(column=0, row=2, sticky=NSEW)
 
         def on_change(*args):
             # prepare data
@@ -124,6 +135,55 @@ string: {decoded}
 
         self.inspect_data.trace_add("write", on_change)
         self.inspect_data.set("f0 9f 98 8b")
+
+        self.inspect_write_frame = ttk.Frame(self.inspect_frame)
+        self.inspect_write_frame["padding"] = 5
+        self.inspect_write_frame["borderwidth"] = 2
+        self.inspect_write_frame["relief"] = "solid"
+        self.inspect_write_frame.grid(column=0, row=1, sticky=NSEW)
+
+        title_label = ttk.Label(self.inspect_write_frame)
+        title_label["text"] = "Card Writer\n"
+        title_label.grid(column=0, row=0, columnspan=2, sticky=NSEW)
+
+        def create_field(title, row):
+            title_label = ttk.Label(self.inspect_write_frame)
+            title_label["text"] = title
+            title_label.grid(column=0, row=row, sticky=NSEW)
+
+            strvar = StringVar()
+            input_box = ttk.Entry(self.inspect_write_frame, textvariable=strvar)
+            input_box["font"] = "TkFixedFont"
+            input_box.grid(column=1, row=row)
+            self.inspect_write_frame.columnconfigure(1, weight=1)
+
+            return strvar
+
+        self.inspect_write_fields = {
+            "sector": create_field("sector", 1),
+            "block": create_field("block", 2),
+            "chunk": create_field("chunk", 3),
+            "data": create_field("data", 4),
+        }
+
+        def write_card(*args):
+            try:
+                data = bytes.fromhex(self.inspect_write_fields["data"].get())
+                sector = int(self.inspect_write_fields["sector"].get())
+                block = int(self.inspect_write_fields["block"].get())
+                chunk = int(self.inspect_write_fields["chunk"].get())
+
+                card.write_chunk(data, sector, block, chunk)
+            except:
+                # TODO: error handling (popup error message)
+                return
+
+            command_scan_card()
+
+        write_button = ttk.Button(self.inspect_write_frame)
+        write_button["text"] = "write card"
+        write_button["command"] = write_card
+        write_button.grid(column=0, row=5, columnspan=2)
 
     def set_selection_action(self):
         """
@@ -158,14 +218,16 @@ string: {decoded}
 
         # prepare header
         header_content = ""
-        header_content += f"sector block  "
+        header_content += f"       chunk {0:_^11d}  {1:_^11d}  {2:_^11d}  {3:_^11d}\n"
+        header_content += "        byte "
         header_content += "  ".join(
             [
                 " ".join([f"{i:2d}" for i in range(start, start + chunk_size)])
                 for start in range(0, config.BLOCK_SIZE, chunk_size)
             ]
         )
-        header_content += "\n\n"
+        header_content += "\n"
+        header_content += "sector block\n"
         self.text.insert("1.0", header_content)
 
         # prepare content
@@ -177,9 +239,9 @@ string: {decoded}
                 row_data = data[start:end]
 
                 if i_block == 0:
-                    self.text.insert(END, f"{i_sector:^6d} {i_block:^5d}  ")
+                    self.text.insert(END, f"{i_sector:^6d} {i_block:^5d} ")
                 else:
-                    self.text.insert(END, f"{'':^6} {i_block:^5d}  ")
+                    self.text.insert(END, f"{'':^6} {i_block:^5d} ")
 
                 chunks = [
                     row_data[i_byte : i_byte + chunk_size]
@@ -204,6 +266,16 @@ string: {decoded}
                                 start, end, *_ = self.text.tag_ranges(chunk_tag)
                                 content = self.text.get(start, end)
                                 self.inspect_data.set(content)
+                                self.inspect_write_fields["sector"].set(
+                                    chunk_tag.i_sector
+                                )
+                                self.inspect_write_fields["block"].set(
+                                    chunk_tag.i_block
+                                )
+                                self.inspect_write_fields["chunk"].set(
+                                    chunk_tag.i_chunk
+                                )
+                                self.inspect_write_fields["data"].set(content)
                             else:
                                 bg_color = "" if type_ == "leave" else "yellow"
                                 self.text.tag_configure(chunk_tag, background=bg_color)
