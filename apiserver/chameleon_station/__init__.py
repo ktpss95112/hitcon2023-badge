@@ -20,10 +20,11 @@ class ChameleonStation:
     def __init__(self) -> None:
         self.root = root = Tk()
         root.title("Chameleon Station of Badge Mini Games")
-        root.geometry("1000x800")
+        root.geometry("1200x800")
 
         self.data = b"\x00" * config.NUM_SECTOR * config.NUM_BLOCK * config.BLOCK_SIZE
 
+        self.ui_settings_frame = frames.UISettingsFrame(root)
         self.command_frame = frames.CommandFrame(
             root,
             command_scan_card=self.command_scan_card,

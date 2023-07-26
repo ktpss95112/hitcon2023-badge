@@ -1,11 +1,57 @@
 import struct
 from collections import UserString
 from tkinter import *
+from tkinter import font as tkFont
 from tkinter import ttk
 from typing import Callable, Literal
 
 from .card import card
 from .config import config
+
+
+class UISettingsFrame:
+    def __init__(self, parent) -> None:
+        self.fonts = [
+            "TkDefaultFont",
+            "TkTextFont",
+            "TkFixedFont",
+            "TkMenuFont",
+            "TkHeadingFont",
+            "TkCaptionFont",
+            "TkSmallCaptionFont",
+            "TkIconFont",
+            "TkTooltipFont",
+        ]
+        self.original_font_size = {
+            font_name: tkFont.nametofont(font_name).actual("size")
+            for font_name in self.fonts
+        }
+
+        self.frame = ttk.LabelFrame(parent)
+        self.frame["text"] = "UI Settings"
+        self.frame["padding"] = 5
+        self.frame.grid(column=0, row=0, sticky=(N, E, W))
+        parent.columnconfigure(0, weight=1)
+
+        label = ttk.Label(self.frame)
+        label["text"] = "UI Scale"
+        label.grid(column=0, row=0)
+
+        self.scale_var = StringVar()
+        input_box = ttk.Entry(self.frame, textvariable=self.scale_var)
+        input_box.grid(column=1, row=0)
+
+        self.scale_var.trace_add("write", self.scale_font)
+        self.scale_var.set(config.DEFAULT_FONT_SCALE)
+
+    def scale_font(self, *args):
+        try:
+            scale = float(self.scale_var.get())
+            for font_name in self.fonts:
+                font = tkFont.nametofont(font_name)
+                font.configure(size=round(self.original_font_size[font_name] * scale))
+        except:
+            pass
 
 
 class CommandFrame:
@@ -14,7 +60,7 @@ class CommandFrame:
     ) -> None:
         self.frame = ttk.Frame(parent)
         self.frame["padding"] = 5
-        self.frame.grid(column=0, row=0, sticky=(N, E, W))
+        self.frame.grid(column=0, row=1, sticky=(N, E, W))
         parent.columnconfigure(0, weight=1)
 
         self.scan_card_button = ttk.Button(self.frame)
@@ -40,8 +86,8 @@ class EditorFrame:
     def __init__(self, parent, command_scan_card: Callable) -> None:
         self.frame = ttk.Frame(parent)
         self.frame["padding"] = 5
-        self.frame.grid(column=0, row=1, sticky=NSEW)
-        parent.rowconfigure(1, weight=1)
+        self.frame.grid(column=0, row=2, sticky=NSEW)
+        parent.rowconfigure(2, weight=1)
         parent.columnconfigure(0, weight=1)
 
         self.setup_hex_view_frame()
@@ -72,16 +118,22 @@ class EditorFrame:
         self.frame.columnconfigure(0, weight=1)
 
         self.text = Text(self.hex_view_frame)
+        self.text["wrap"] = "none"
         self.text.grid(column=0, row=0, sticky=NSEW)
         self.hex_view_frame.rowconfigure(0, weight=1)
         self.hex_view_frame.columnconfigure(0, weight=1)
 
         self.clear_content()
 
-        scrollbar = ttk.Scrollbar(self.hex_view_frame, orient=VERTICAL)
-        scrollbar["command"] = self.text.yview
-        self.text["yscrollcommand"] = scrollbar.set
-        scrollbar.grid(column=1, row=0, sticky=NS)
+        scrollbar_y = ttk.Scrollbar(self.hex_view_frame, orient=VERTICAL)
+        scrollbar_y["command"] = self.text.yview
+        self.text["yscrollcommand"] = scrollbar_y.set
+        scrollbar_y.grid(column=1, row=0, sticky=NS)
+
+        scrollbar_x = ttk.Scrollbar(self.hex_view_frame, orient=HORIZONTAL)
+        scrollbar_x["command"] = self.text.xview
+        self.text["xscrollcommand"] = scrollbar_x.set
+        scrollbar_x.grid(column=0, row=1, sticky=EW)
 
     def setup_inspect_frame(self, command_scan_card: Callable):
         self.inspect_frame = ttk.Frame(self.frame)
