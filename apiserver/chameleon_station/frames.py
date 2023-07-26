@@ -58,7 +58,8 @@ class CommandFrame:
     def __init__(
         self, parent, command_scan_card: Callable, command_show_qrcode: Callable
     ) -> None:
-        self.frame = ttk.Frame(parent)
+        self.frame = ttk.LabelFrame(parent)
+        self.frame["text"] = "Commands"
         self.frame["padding"] = 5
         self.frame.grid(column=0, row=1, sticky=(N, E, W))
         parent.columnconfigure(0, weight=1)
@@ -140,24 +141,19 @@ class EditorFrame:
         self.inspect_frame["padding"] = 5
         self.inspect_frame.grid(column=1, row=0, sticky=NSEW)
 
-        self.inspect_read_frame = ttk.Frame(self.inspect_frame)
+        self.inspect_read_frame = ttk.LabelFrame(self.inspect_frame)
+        self.inspect_read_frame["text"] = "Data Inspector"
         self.inspect_read_frame["padding"] = 5
-        self.inspect_read_frame["borderwidth"] = 2
-        self.inspect_read_frame["relief"] = "solid"
         self.inspect_read_frame.grid(column=0, row=0, sticky=NSEW)
-
-        title_label = ttk.Label(self.inspect_read_frame, anchor=NW)
-        title_label["text"] = "Data Inspector\n"
-        title_label.grid(column=0, row=0, sticky=NSEW)
 
         self.inspect_data = StringVar()
         input_box = ttk.Entry(self.inspect_read_frame, textvariable=self.inspect_data)
         input_box["font"] = "TkFixedFont"
-        input_box.grid(column=0, row=1)
+        input_box.grid(column=0, row=0)
 
         output_label = ttk.Label(self.inspect_read_frame)
         output_label["font"] = "TkFixedFont"
-        output_label.grid(column=0, row=2, sticky=NSEW)
+        output_label.grid(column=0, row=1, sticky=NSEW)
 
         def on_change(*args):
             # prepare data
@@ -188,15 +184,10 @@ string: {decoded}
         self.inspect_data.trace_add("write", on_change)
         self.inspect_data.set("f0 9f 98 8b")
 
-        self.inspect_write_frame = ttk.Frame(self.inspect_frame)
+        self.inspect_write_frame = ttk.LabelFrame(self.inspect_frame)
+        self.inspect_write_frame["text"] = "Card Writer"
         self.inspect_write_frame["padding"] = 5
-        self.inspect_write_frame["borderwidth"] = 2
-        self.inspect_write_frame["relief"] = "solid"
         self.inspect_write_frame.grid(column=0, row=1, sticky=NSEW)
-
-        title_label = ttk.Label(self.inspect_write_frame)
-        title_label["text"] = "Card Writer\n"
-        title_label.grid(column=0, row=0, columnspan=2, sticky=NSEW)
 
         def create_field(title, row):
             title_label = ttk.Label(self.inspect_write_frame)
@@ -212,10 +203,10 @@ string: {decoded}
             return strvar
 
         self.inspect_write_fields = {
-            "sector": create_field("sector", 1),
-            "block": create_field("block", 2),
-            "chunk": create_field("chunk", 3),
-            "data": create_field("data", 4),
+            "sector": create_field("sector", 0),
+            "block": create_field("block", 1),
+            "chunk": create_field("chunk", 2),
+            "data": create_field("data", 3),
         }
 
         def write_card(*args):
