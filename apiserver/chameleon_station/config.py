@@ -10,5 +10,7 @@ class Config:
 
     QRCODE_SIZE = 300
 
+    DEFAULT_FONT_SCALE = 1.2
+
 
 config = Config()
