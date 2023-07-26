@@ -214,7 +214,6 @@ string: {decoded}
 
     def _update_content(self, data: bytes):
         self.text.delete("1.0", "end")
-        chunk_size = config.BLOCK_SIZE // config.DISPLAY_CHUNK
 
         # prepare header
         header_content = ""
@@ -222,8 +221,10 @@ string: {decoded}
         header_content += "        byte "
         header_content += "  ".join(
             [
-                " ".join([f"{i:2d}" for i in range(start, start + chunk_size)])
-                for start in range(0, config.BLOCK_SIZE, chunk_size)
+                " ".join(
+                    [f"{i:2d}" for i in range(start, start + config.DISPLAY_CHUNK)]
+                )
+                for start in range(0, config.BLOCK_SIZE, config.DISPLAY_CHUNK)
             ]
         )
         header_content += "\n"
@@ -244,8 +245,8 @@ string: {decoded}
                     self.text.insert(END, f"{'':^6} {i_block:^5d} ")
 
                 chunks = [
-                    row_data[i_byte : i_byte + chunk_size]
-                    for i_byte in range(0, config.BLOCK_SIZE, chunk_size)
+                    row_data[i_byte : i_byte + config.DISPLAY_CHUNK]
+                    for i_byte in range(0, config.BLOCK_SIZE, config.DISPLAY_CHUNK)
                 ]
                 for i_chunk, chunk in enumerate(chunks):
                     # content
@@ -256,12 +257,15 @@ string: {decoded}
                     self.text.insert(
                         END, ("\n" if i_chunk == len(chunks) - 1 else "  ")
                     )
+                    self.text.tag_lower(chunk_tag, belowThis=SEL)
 
                     # handler
                     def gen_event_handler(
                         chunk_tag: ChunkTag, type_: Literal["enter", "leave", "click"]
                     ):
                         def handler(*args):
+                            if chunk_tag.i_block == 3:
+                                return
                             if type_ == "click":
                                 start, end, *_ = self.text.tag_ranges(chunk_tag)
                                 content = self.text.get(start, end)
@@ -292,6 +296,16 @@ string: {decoded}
                     self.text.tag_bind(
                         chunk_tag, "<Button-1>", gen_event_handler(chunk_tag, "click")
                     )
+
+        # gray out read-only blocks
+        readonly_tag = "readonly"
+        self.text.tag_configure(readonly_tag, background="gray90", foreground="gray75")
+        self.text.tag_lower(readonly_tag, belowThis=SEL)
+        for i_sector in range(config.NUM_SECTOR):
+            for i_chunk in range(config.BLOCK_SIZE // config.DISPLAY_CHUNK):
+                chunk_tag = ChunkTag(i_sector, 3, i_chunk)
+                start, end, *_ = self.text.tag_ranges(chunk_tag)
+                self.text.tag_add(readonly_tag, start, end)
 
     def clear_content(self):
         self._update_content(
