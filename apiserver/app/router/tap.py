@@ -103,3 +103,13 @@ async def tap_sponsor_flush_emoji(
     print("received emoji:", repr(emoji_list), flush=True)
 
     return True
+
+
+@router.post(
+    "/crypto/{reader_id}/user/{card_uid}",
+    dependencies=[CheckCardReaderTypeDep(CardReaderType.CRYPTO)],
+    tags=["crypto"],
+)
+@user_add_record
+async def tap_crypto(user: GetUserDep, reader: GetReaderDep, db: DBDep) -> bool:
+    return True

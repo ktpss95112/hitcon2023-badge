@@ -30,6 +30,7 @@ class CardReaderType(IntEnum):
     POPCAT = 2
     SPONSOR_FLUSH = 3
     DINORUN = 4
+    CRYPTO = 5
 
 
 # Note: if create new columns, give an initial value as auto migration

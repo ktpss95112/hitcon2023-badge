@@ -76,6 +76,9 @@ data = {
         "dinorun reader": model.CardReader(
             id="reader4", name="dinorun reader", type=model.CardReaderType.DINORUN
         ),
+        "crypto reader": model.CardReader(
+            id="reader5", name="crypto reader", type=model.CardReaderType.CRYPTO
+        ),
     },
 }
 
