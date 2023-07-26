@@ -13,7 +13,7 @@ from ..dependency import (
     GetReaderDep,
     GetUserDep,
 )
-from ..model import CardReader, CardReaderType, User
+from ..model import CardReader, CardReaderType, TapRecord, User
 
 router = APIRouter(
     prefix="/tap",
@@ -29,8 +29,9 @@ def user_add_record(func):
     @functools.wraps(func)
     async def wrapper(user: User, reader: CardReader, db: DB, *args, **kwargs):
         ret = await func(user, reader, db, *args, **kwargs)
-        user.add_record(datetime.now(), reader)
-        await db.write_user(user)
+        await db.new_tap_record(
+            TapRecord(card_uid=user.card_uid, reader_id=reader.id, time=datetime.now())
+        )
         return ret
 
     return wrapper
