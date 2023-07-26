@@ -11,7 +11,7 @@ from pydantic import BaseModel
 from pymongo import MongoClient
 
 from .config import config
-from .model import CardReader, DinorunRecord, PopcatRecord, User
+from .model import CardReader, DinorunRecord, PopcatRecord, TapRecord, User
 
 
 class DB(abc.ABC):
@@ -67,6 +67,18 @@ class DB(abc.ABC):
     async def del_all_dinorun(self) -> list[DinorunRecord]:
         pass
 
+    @abc.abstractmethod
+    async def new_tap_record(self, record: TapRecord):
+        pass
+
+    @abc.abstractmethod
+    async def get_tap_record_by_user(self, user: User) -> list[TapRecord]:
+        pass
+
+    @abc.abstractmethod
+    async def get_tap_record_by_reader(self, reader: CardReader) -> list[TapRecord]:
+        pass
+
 
 class MongoDB(DB):
     def __init__(self, client: MongoClient) -> None:
@@ -74,6 +86,7 @@ class MongoDB(DB):
 
         self.__db = self.__client[config.MONGODB_DB_NAME]
         self.__user_table = self.__db[config.MONGODB_USER_TABLE_NAME]
+        self.__tap_record_table = self.__db[config.MONGODB_TAP_RECORD_TABLE_NAME]
         self.__card_reader_table = self.__db[config.MONGODB_CARE_READER_TABLE_NAME]
         self.__popcat_record_table = self.__db[config.MONGODB_POPCAT_RECORD_TABLE_NAME]
         self.__dinorun_record_table = self.__db[
@@ -144,6 +157,15 @@ class MongoDB(DB):
 
     async def del_all_dinorun(self) -> list[DinorunRecord]:
         self.__dinorun_record_table.drop()
+
+    async def new_tap_record(self, record: TapRecord):
+        self.__tap_record_table.insert_one(dict(record))
+
+    async def get_tap_record_by_user(self, user: User) -> list[TapRecord]:
+        return list(self.__tap_record_table.find({"card_uid": user.card_uid}))
+
+    async def get_tap_record_by_reader(self, reader: CardReader) -> list[TapRecord]:
+        return list(self.__tap_record_table.find({"reader_id": reader.id}))
 
 
 # class FilesystemDB(DB):

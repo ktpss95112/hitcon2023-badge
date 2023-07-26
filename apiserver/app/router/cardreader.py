@@ -3,7 +3,7 @@ from datetime import datetime
 from fastapi import APIRouter
 
 from ..dependency import DBDep, GetReaderDep
-from ..model import CardReader
+from ..model import CardReader, TapRecord
 
 router = APIRouter(
     prefix="/cardreader",
@@ -46,3 +46,9 @@ async def get_reader(reader: GetReaderDep) -> CardReader:
 @router.post("/")
 async def write_reader(reader: CardReader, db: DBDep):
     await db.write_reader(reader)
+
+
+# TODO: check permission
+@router.get("/{reader_id}/tap_record", tags=["tap record"])
+async def get_tap_record_by_user(reader: GetReaderDep, db: DBDep) -> list[TapRecord]:
+    return await db.get_tap_record_by_reader(reader)

@@ -12,6 +12,7 @@ class Config:
     MONGODB_PASSWORD: str = "example"
     MONGODB_DB_NAME: str = "badge"
     MONGODB_USER_TABLE_NAME: str = "user"
+    MONGODB_TAP_RECORD_TABLE_NAME: str = "tap-record"
     MONGODB_CARE_READER_TABLE_NAME: str = "card-reader"
     MONGODB_POPCAT_RECORD_TABLE_NAME: str = "popcat-record"
     MONGODB_DINORUN_RECORD_TABLE_NAME: str = "dinorun-record"
