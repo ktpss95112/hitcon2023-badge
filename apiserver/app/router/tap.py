@@ -37,6 +37,11 @@ def user_add_record(func):
     return wrapper
 
 
+@router.get("/tap_record", tags=["tap record"])
+async def get_all_tap_record(db: DBDep) -> list[TapRecord]:
+    return await db.get_all_tap_record()
+
+
 @router.post(
     "/sponsor/{reader_id}/user/{card_uid}",
     dependencies=[CheckCardReaderTypeDep(CardReaderType.SPONSOR)],

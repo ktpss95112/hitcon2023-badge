@@ -16,6 +16,10 @@ from .model import CardReader, DinorunRecord, PopcatRecord, TapRecord, User
 
 class DB(abc.ABC):
     @abc.abstractmethod
+    async def drop_all(self):
+        pass
+
+    @abc.abstractmethod
     async def get_user_by_card_uid(self, card_uid: str) -> User | None:
         pass
 
@@ -72,6 +76,10 @@ class DB(abc.ABC):
         pass
 
     @abc.abstractmethod
+    async def get_all_tap_record(self) -> list[TapRecord]:
+        pass
+
+    @abc.abstractmethod
     async def get_tap_record_by_user(self, user: User) -> list[TapRecord]:
         pass
 
@@ -92,6 +100,18 @@ class MongoDB(DB):
         self.__dinorun_record_table = self.__db[
             config.MONGODB_DINORUN_RECORD_TABLE_NAME
         ]
+
+        self.__all_collections = [
+            self.__user_table,
+            self.__tap_record_table,
+            self.__card_reader_table,
+            self.__popcat_record_table,
+            self.__dinorun_record_table,
+        ]
+
+    async def drop_all(self):
+        for collection in self.__all_collections:
+            collection.drop()
 
     async def get_user_by_card_uid(self, card_uid: str) -> User | None:
         obj = self.__user_table.find_one({"card_uid": card_uid})
@@ -160,6 +180,9 @@ class MongoDB(DB):
 
     async def new_tap_record(self, record: TapRecord):
         self.__tap_record_table.insert_one(dict(record))
+
+    async def get_all_tap_record(self) -> list[TapRecord]:
+        return list(self.__tap_record_table.find())
 
     async def get_tap_record_by_user(self, user: User) -> list[TapRecord]:
         return list(self.__tap_record_table.find({"card_uid": user.card_uid}))

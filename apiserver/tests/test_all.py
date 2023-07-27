@@ -1,5 +1,6 @@
 import asyncio
 import functools
+from collections import Counter
 
 from fastapi.testclient import TestClient
 
@@ -100,3 +101,88 @@ def test_dinorun():
             assert rj[user.card_uid] == highest_score
             del rj[user.card_uid]
         assert len(rj) == 0
+
+
+@ensure_db
+def test_tap():
+    with TestClient(app) as client:
+        counter = Counter()
+        for user in data["user"].values():
+            counter[user] = len(client.get(f"/user/{user.card_uid}/tap_record").json())
+        for reader in data["card reader"].values():
+            counter[reader] = len(
+                client.get(f"/cardreader/{reader.id}/tap_record").json()
+            )
+
+        def test(url_prefix, reader, user, **kwargs):
+            card_uid = user.card_uid
+            reader_id = reader.id
+
+            curr_len_user = len(client.get(f"/user/{card_uid}/tap_record").json())
+            curr_len_reader = len(
+                client.get(f"/cardreader/{reader_id}/tap_record").json()
+            )
+            from pprint import pprint
+
+            assert curr_len_user == counter[user]
+            assert curr_len_reader == counter[reader]
+
+            resp = client.post(f"{url_prefix}/{reader_id}/user/{card_uid}", **kwargs)
+            assert resp.status_code == 200
+
+            new_len_user = len(client.get(f"/user/{card_uid}/tap_record").json())
+            new_len_reader = len(
+                client.get(f"/cardreader/{reader_id}/tap_record").json()
+            )
+            assert new_len_user == curr_len_user + 1
+            assert new_len_reader == curr_len_reader + 1
+
+            counter[user] += 1
+            counter[reader] += 1
+
+        test(
+            "/tap/sponsor",
+            data["card reader"]["sponsor reader 1"],
+            data["user"]["chiffoncake"],
+        )
+        test(
+            "/tap/sponsor",
+            data["card reader"]["sponsor reader 2"],
+            data["user"]["chiffoncake"],
+        )
+        test(
+            "/tap/sponsor",
+            data["card reader"]["sponsor reader 1"],
+            data["user"]["user1"],
+        )
+        test(
+            "/tap/sponsor",
+            data["card reader"]["sponsor reader 2"],
+            data["user"]["user1"],
+        )
+        test(
+            "/tap/popcat",
+            data["card reader"]["popcat reader"],
+            data["user"]["user1"],
+            params={"incr": "10"},
+        )
+        test(
+            "/tap/popcat",
+            data["card reader"]["popcat reader"],
+            data["user"]["user2"],
+            params={"incr": "10"},
+        )
+        test(
+            "/tap/sponsor_flush_emoji",
+            data["card reader"]["sponsor emoji flush reader"],
+            data["user"]["user1"],
+            json={"emoji_list": "aaa"},
+        )
+        test(
+            "/tap/sponsor_flush_emoji",
+            data["card reader"]["sponsor emoji flush reader"],
+            data["user"]["user2"],
+            json={"emoji_list": "aaa"},
+        )
+        test("/tap/crypto", data["card reader"]["crypto reader"], data["user"]["user1"])
+        test("/tap/crypto", data["card reader"]["crypto reader"], data["user"]["user2"])
