@@ -1,7 +1,8 @@
 from datetime import datetime
 
-from fastapi import APIRouter
+from fastapi import APIRouter, BackgroundTasks
 
+from ..dashboard import dashboard
 from ..dependency import DBDep, GetDinorunDep
 
 router = APIRouter(
@@ -29,13 +30,21 @@ async def get_score(record: GetDinorunDep) -> float:
 @router.post(
     "/{card_uid}",
 )
-async def submit_score(record: GetDinorunDep, db: DBDep, score: float) -> bool:
+async def submit_score(
+    record: GetDinorunDep, db: DBDep, score: float, bg_task: BackgroundTasks
+) -> bool:
     """
     The returned boolean indicates whether the submission is successful.
     """
 
-    # TODO: be aware that the validity of score is not checked
+    # be aware that the validity of score is not checked
     record.add_record(datetime.now(), score)
     await db.write_dinorun(record)
+
+    # push to frontend
+    if not dashboard.disabled:
+        bg_task.add_task(
+            dashboard.create_or_update_dino, record.card_uid, record.get_best_score()
+        )
 
     return True

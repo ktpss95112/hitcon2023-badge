@@ -2,9 +2,10 @@ import functools
 from datetime import datetime
 from typing import Annotated
 
-from fastapi import APIRouter, Body
+from fastapi import APIRouter, BackgroundTasks, Body, HTTPException
 
 from ..config import config
+from ..dashboard import dashboard
 from ..db import DB
 from ..dependency import (
     CheckCardReaderTypeDep,
@@ -58,7 +59,12 @@ async def tap_sponsor(user: GetUserDep, reader: GetReaderDep, db: DBDep) -> bool
 )
 @user_add_record
 async def tap_popcat(
-    user: GetUserDep, reader: GetReaderDep, db: DBDep, record: GetPopcatDep, incr: int
+    user: GetUserDep,
+    reader: GetReaderDep,
+    db: DBDep,
+    record: GetPopcatDep,
+    incr: int,
+    bg_task: BackgroundTasks,
 ) -> tuple[bool, int]:
     """
     The returned boolean indicates whether the submission is successful.
@@ -76,9 +82,15 @@ async def tap_popcat(
     if cooldown > 0:
         return False, cooldown
 
-    # TODO: be aware that the validity of incr is not checked
+    # be aware that the validity of incr is not checked
     record.add_record(datetime.now(), incr)
     await db.write_popcat(record)
+
+    # push to frontend
+    if not dashboard.disabled:
+        bg_task.add_task(
+            dashboard.create_or_update_popcat, user.card_uid, record.get_score()
+        )
 
     return True, COOLDOWN
 
@@ -105,8 +117,10 @@ async def tap_sponsor_flush_emoji(
     if not show:
         return True
 
-    # TODO: push to frontend?
-    print("received emoji:", repr(emoji_list), flush=True)
+    # push to frontend
+    if not dashboard.disabled:
+        if not dashboard.create_emoji(user.card_uid, emoji_list, datetime.now()):
+            raise HTTPException(500, "Error pushing message to dashboard")
 
     return True
 

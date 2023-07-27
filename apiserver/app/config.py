@@ -21,6 +21,9 @@ class Config:
 
     SPONSOR_EMOJI_BUFFER_LENGTH: int = 10
 
+    DASHBOARD_ORIGIN: str = ""
+    DASHBOARD_APIKEY: str = ""
+
     @classmethod
     def new(cls):
         config = cls()
