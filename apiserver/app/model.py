@@ -50,18 +50,11 @@ class CardReader(BaseModel):
 
 class PopcatRecord(BaseModel):
     card_uid: str
-    record: list[
-        tuple[datetime, int]
-    ] = []  # every item is the tap time and the increment of his score
-
-    def add_record(self, time: datetime, incr: int):
-        self.record.append((time, incr))
-
-    def get_score(self) -> int:
-        # TODO: maybe sum the records which lie within a specific time interval
-        return sum(incr for time, incr in self.record)
+    time: datetime
+    incr: int
 
 
+# TODO: Do not use card_uid as primary key. Store every record separately. See class PopcatRecord.
 class DinorunRecord(BaseModel):
     card_uid: str
     record: list[

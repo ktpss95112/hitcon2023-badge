@@ -7,14 +7,8 @@ from fastapi import APIRouter, BackgroundTasks, Body, HTTPException
 from ..config import config
 from ..dashboard import dashboard
 from ..db import DB
-from ..dependency import (
-    CheckCardReaderTypeDep,
-    DBDep,
-    GetPopcatDep,
-    GetReaderDep,
-    GetUserDep,
-)
-from ..model import CardReader, CardReaderType, TapRecord, User
+from ..dependency import CheckCardReaderTypeDep, DBDep, GetReaderDep, GetUserDep
+from ..model import CardReader, CardReaderType, PopcatRecord, TapRecord, User
 
 router = APIRouter(
     prefix="/tap",
@@ -46,6 +40,7 @@ async def get_all_tap_record(db: DBDep) -> list[TapRecord]:
 @router.post(
     "/sponsor/{reader_id}/user/{card_uid}",
     dependencies=[CheckCardReaderTypeDep(CardReaderType.SPONSOR)],
+    tags=["emoji"],
 )
 @user_add_record
 async def tap_sponsor(user: GetUserDep, reader: GetReaderDep, db: DBDep) -> bool:
@@ -62,7 +57,6 @@ async def tap_popcat(
     user: GetUserDep,
     reader: GetReaderDep,
     db: DBDep,
-    record: GetPopcatDep,
     incr: int,
     bg_task: BackgroundTasks,
 ) -> tuple[bool, int]:
@@ -73,24 +67,21 @@ async def tap_popcat(
 
     # check whether the user taps too fast
     COOLDOWN = config.POPCAT_TAP_INTERVAL
+    last_time = await db.get_latest_popcat_time_by_user(user)
     now = datetime.now()
-    cooldown = (
-        COOLDOWN - int((now - max(record.record)[0]).total_seconds())
-        if record.record
-        else 0
-    )
+    cooldown = COOLDOWN - int((now - last_time).total_seconds())
     if cooldown > 0:
         return False, cooldown
 
     # be aware that the validity of incr is not checked
-    record.add_record(datetime.now(), incr)
-    await db.write_popcat(record)
+    await db.new_popcat(
+        PopcatRecord(card_uid=user.card_uid, time=datetime.now(), incr=incr)
+    )
 
     # push to frontend
     if not dashboard.disabled:
-        bg_task.add_task(
-            dashboard.create_or_update_popcat, user.card_uid, record.get_score()
-        )
+        score = await db.get_popcat_score_by_user(user)
+        bg_task.add_task(dashboard.create_or_update_popcat, user.card_uid, score)
 
     return True, COOLDOWN
 
@@ -98,6 +89,7 @@ async def tap_popcat(
 @router.post(
     "/sponsor_flush_emoji/{reader_id}/user/{card_uid}",
     dependencies=[CheckCardReaderTypeDep(CardReaderType.SPONSOR_FLUSH)],
+    tags=["emoji"],
 )
 @user_add_record
 async def tap_sponsor_flush_emoji(
