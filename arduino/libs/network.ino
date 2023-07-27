@@ -19,25 +19,30 @@ namespace network {
 		wifi_client.setFingerprint(host_fingerprint);
 	}
 
-	bool get_json(DynamicJsonDocument &doc, const char *path) {
+	String get_string(const char *path) {
 		HTTPClient https;
 		int status_code;
+		String res;
+
+		https.begin(wifi_client, host, host_port, path);
+		status_code = https.GET();
+		Serial.printf("status code %d", status_code);
+		Serial.println();
+		res = https.getString();
+		Serial.println("content:");
+		Serial.println(res);
+		if (status_code == 200)
+			return res;
+		else
+			return "";
+	}
+
+	bool get_json(DynamicJsonDocument &doc, const char *path) {
 		DeserializationError json_error;
 
-		if (!https.begin(wifi_client, host, host_port, path)) {
-			Serial.printf("failed connecting to %s%s", host, path);
-			Serial.println();
-			return false;
-		}
+		String data = get_string(path);
 
-		status_code = https.GET();
-		if (status_code != 200) {
-			Serial.printf("status code %d", status_code);
-			Serial.println();
-			return false;
-		}
-
-		json_error = deserializeJson(doc, https.getStream());
+		json_error = deserializeJson(doc, data);
 		if (json_error) {
 			Serial.printf(
 				"can't deserialize JSON: %s",
@@ -46,6 +51,7 @@ namespace network {
 			Serial.println();
 			return false;
 		}
+		Serial.println("deserialization success");
 		return true;
 	}
 
@@ -56,19 +62,16 @@ namespace network {
 		DeserializationError json_error;
 
 		serializeJson(doc, payload);
+		Serial.println("posting:");
+		Serial.println(payload);
 
-		if (!https.begin(wifi_client, host, host_port, path)) {
-			Serial.printf("failed connecting to %s%S", host, host_port);
-			Serial.println();
-			return false;
-		}
+		https.begin(wifi_client, host, host_port, path);
 
 		status_code = https.POST(payload);
-		if (status_code != 200) {
-			Serial.printf("status code %d", status_code);
-			Serial.println();
-			return false;
-		}
-		return true;
+		Serial.printf("status code %d", status_code);
+		Serial.println();
+		Serial.println("content:");
+		Serial.println(https.getString());
+		return status_code == 200;
 	}
 }

@@ -2,6 +2,7 @@
 #define _NETWORK_H
 
 #include <ESP8266WiFi.h>
+#include <ESP8266HTTPClient.h>
 #include <ArduinoJson.h>
 #include "config.h"
 
@@ -22,6 +23,7 @@ namespace network {
 	const BearSSL::PrivateKey client_key(client_key_str);
 
 	void setup();
+	String get_string(const char *path);
 	bool get_json(DynamicJsonDocument &doc, const char *path);
 	bool post_json(DynamicJsonDocument &doc, const char *path);
 };
