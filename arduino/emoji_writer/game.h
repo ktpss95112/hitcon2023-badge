@@ -23,7 +23,7 @@ namespace game {
 	const char *current_time_path = "/time";
 	const char *flush_path = "/tap/sponsor_flush_emoji/";
 
-	const unsigned capacity = card::BLKSIZE * 13 - sizeof(unsigned);
+	const unsigned capacity = card::BLKSIZE * 14 - sizeof(unsigned);
 	const unsigned strlen_off = capacity;
 
 	time_t clock_offset = 0;

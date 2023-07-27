@@ -5,11 +5,12 @@
 #include "game.h"
 #include "card.h"
 #include "network.h"
+#include "util.h"
 
 namespace game {
 	static time_t str_to_epoch(const char *str) {
 		tm datetime {0};
-		strptime(str, "%FT%T.", &datetime);
+		strptime(str, "\"%FT%T.", &datetime);
 		return mktime(&datetime);
 	}
 
@@ -20,6 +21,9 @@ namespace game {
 		std::shared_ptr<emoji_timetable> cur(new emoji_timetable(
 			starttime, emoji_str, emoji_timetable_head
 		));
+		Serial.println(cur->emoji);
+		Serial.printf("%s", starttime_str);
+		Serial.println();
 		emoji_timetable_head = cur;
 	}
 
@@ -29,7 +33,7 @@ namespace game {
 
 	static bool read_timetable() {
 		int i, n;
-		DynamicJsonDocument doc(256);
+		DynamicJsonDocument doc(1024);
 		if (!network::get_json(doc, emoji_timetable_path))
 			return false;
 
@@ -52,12 +56,15 @@ namespace game {
 	}
 
 	static bool sync_clock() {
-		DynamicJsonDocument doc(48);
-		if (!network::get_json(doc, current_time_path))
+		String datetime_str = network::get_string(current_time_path);
+		if (datetime_str.length() == 0)
 			return false;
-		String datetime_str = doc.as<String>();
 		time_t now = str_to_epoch(datetime_str.c_str());
+		Serial.printf("now: %lld", now);
+		Serial.println();
 		clock_offset = now - seconds_from_boot();
+		Serial.printf("offset: %lld", clock_offset);
+		Serial.println();
 		clock_last_update = seconds_from_boot();
 		return true;
 	}
@@ -75,10 +82,12 @@ namespace game {
 			Serial.println("clock synchronization failed");
 			return;
 		}
+#ifdef WRITER
 		if (!read_timetable()) {
 			Serial.println("time table read failed");
 			return;
 		}
+#endif
 	}
 
 	static void clock_housekeeping() {
@@ -93,6 +102,8 @@ namespace game {
 			emoji_timetable_head->next->starttime <= estimated_cur_time()
 		)
 			pop_one_emoji();
+		Serial.print("current emoji: ");
+		Serial.println(emoji_timetable_head->emoji);
 	}
 
 	static void write_card() {
@@ -101,6 +112,9 @@ namespace game {
 			Serial.println("failed to read the current length");
 			return;
 		}
+		Serial.printf("current len: %d", cur_len);
+		Serial.println();
+
 		String &cur_emoji = emoji_timetable_head->emoji;
 		int emoji_len = cur_emoji.length();
 		if (cur_len + emoji_len >= capacity) {
@@ -128,20 +142,29 @@ namespace game {
 			Serial.println("failed to erase the card");
 			return;
 		}
+		Serial.println("erase successful");
 	}
 
 	static void flush_card() {
+		byte data[capacity];
 		int cur_len = get_cur_len();
 		if (cur_len < 0) {
 			Serial.println("failed to read the current length");
 			return;
 		}
-		byte data[cur_len];
+		Serial.printf("length: %d", cur_len);
+		Serial.println();
+
 		int res = card::pread(data, cur_len, 0);
 		if (res != cur_len) {
 			Serial.println("failed to read the emoji list");
 			return;
 		}
+		data[cur_len] = '\0';
+		Serial.printf("data:");
+		for (int i = 0; i < cur_len; ++i)
+			Serial.printf("%c", data[i]);
+		Serial.println();
 
 		byte uuid[card::BLKSIZE];
 		res = card::read_uuid(uuid);
@@ -153,13 +176,18 @@ namespace game {
 		String path = flush_path;
 		path += reader_id;
 		path += "/user/";
-		path += bytes_to_str(uuid, 16);
+		path += util::bytes_to_str(uuid, 16);
+		Serial.println("uuid:");
+		Serial.println(util::bytes_to_str(uuid, 16));
 
 		/* The *3 is just an approximation. */
 		DynamicJsonDocument doc(cur_len * 3);
-		doc["emoji_list"] = data;
+		doc["emoji_list"] = String((char *)data);
 		doc["show"] = true;
-		network::post_json(doc, path.c_str());
+		if (!network::post_json(doc, path.c_str())) {
+			Serial.println("failed to post the emoji");
+			return;
+		}
 		erase_card();
 	}
 
