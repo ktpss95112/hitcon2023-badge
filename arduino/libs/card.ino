@@ -23,7 +23,6 @@ namespace card {
 			picc_type != MFRC522::PICC_TYPE_MIFARE_1K &&
 			picc_type != MFRC522::PICC_TYPE_MIFARE_4K)
 			return false;
-
 		return true;
 	}
 
@@ -167,6 +166,29 @@ namespace card {
 		res = read_block(block0, 0, 0, BLKSIZE);
 		if (res)
 			memcpy(buf, block0, UUIDSIZE);
+		return res;
+	}
+
+	bool write_uuid(byte *uuid) {
+		byte buf[BLKSIZE];
+		int i;
+		byte checksum;
+		bool res = auth_b(0);
+		if (!res)
+			return false;
+
+		res = read_block(buf, 0, 0, BLKSIZE);
+		if (!res)
+			return false;
+
+		checksum = 0;
+		for (i = 0; i < UUIDSIZE; ++i) {
+			buf[i] = uuid[i];
+			checksum ^= uuid[i];
+		}
+		buf[UUIDSIZE] = checksum;
+
+		res = write_block(buf, 0, 0, BLKSIZE);
 		return res;
 	}
 
