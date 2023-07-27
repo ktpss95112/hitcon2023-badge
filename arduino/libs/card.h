@@ -8,6 +8,7 @@ namespace card {
 	const auto RST_PIN = D9;
 	const auto SS_PIN = D10;
 	const int BLKSIZE = 16;
+	const int UUIDSIZE = 4;
 
 	MFRC522 mfrc522(SS_PIN, RST_PIN);
 	MFRC522::MIFARE_Key default_key;
@@ -16,6 +17,7 @@ namespace card {
 	int pread(byte *buf, int nbyte, int offset);
 	int pwrite(byte *buf, int nbyte, int offset);
 	bool read_uuid(byte *buf);
+	bool write_uuid(byte *buf);
 	void done();
 }
 
