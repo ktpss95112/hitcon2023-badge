@@ -2,6 +2,7 @@ import abc
 import atexit
 import functools
 import sys
+from datetime import datetime
 from pathlib import Path
 from typing import Callable
 from urllib.parse import quote_plus
@@ -40,11 +41,23 @@ class DB(abc.ABC):
         pass
 
     @abc.abstractmethod
-    async def get_popcat_by_user(self, user: User) -> PopcatRecord:
+    async def new_popcat(self, record: PopcatRecord):
         pass
 
     @abc.abstractmethod
-    async def write_popcat(self, record: PopcatRecord):
+    async def get_popcat_score_by_user(self, user: User) -> int:
+        pass
+
+    @abc.abstractmethod
+    async def get_all_popcat_score(self) -> dict[str, int]:
+        pass
+
+    @abc.abstractmethod
+    async def get_latest_popcat_time_by_user(self, user: User) -> PopcatRecord:
+        pass
+
+    @abc.abstractmethod
+    async def get_all_popcat_by_user(self, user: User) -> list[PopcatRecord]:
         pass
 
     @abc.abstractmethod
@@ -52,7 +65,7 @@ class DB(abc.ABC):
         pass
 
     @abc.abstractmethod
-    async def del_all_popcat(self) -> list[PopcatRecord]:
+    async def del_all_popcat(self):
         pass
 
     @abc.abstractmethod
@@ -68,7 +81,7 @@ class DB(abc.ABC):
         pass
 
     @abc.abstractmethod
-    async def del_all_dinorun(self) -> list[DinorunRecord]:
+    async def del_all_dinorun(self):
         pass
 
     @abc.abstractmethod
@@ -138,24 +151,42 @@ class MongoDB(DB):
     async def get_all_reader(self) -> list[CardReader]:
         return [CardReader.parse_obj(obj) for obj in self.__card_reader_table.find()]
 
-    async def get_popcat_by_user(self, user: User) -> PopcatRecord:
-        obj = self.__popcat_record_table.find_one({"card_uid": user.card_uid})
-        if obj is None:
-            # If the record is not created before, create it.
-            return PopcatRecord(card_uid=user.card_uid)
-        return PopcatRecord.parse_obj(obj)
+    async def new_popcat(self, record: PopcatRecord):
+        self.__popcat_record_table.insert_one(dict(record))
 
-    async def write_popcat(self, record: PopcatRecord):
-        self.__popcat_record_table.replace_one(
-            {"card_uid": record.card_uid}, dict(record), upsert=True
+    async def get_popcat_score_by_user(self, user: User) -> int:
+        # TODO: optimize?
+        tmp = await self.get_all_popcat_score()
+        return tmp.get(user.card_uid, 0)
+
+    async def get_all_popcat_score(self) -> dict[str, int]:
+        """
+        The returned dictionary:
+        * key: card_uid
+        * value: score
+        """
+        tmp = self.__popcat_record_table.aggregate(
+            [{"$group": {"_id": "$card_uid", "score": {"$sum": "$incr"}}}]
+        )
+        return {result["_id"]: result["score"] for result in tmp}
+
+    async def get_latest_popcat_time_by_user(self, user: User) -> datetime:
+        # TODO: optimize?
+        tmp = await self.get_all_popcat_by_user(user)
+        return max((record.time for record in tmp), default=datetime.min)
+
+    async def get_all_popcat_by_user(self, user: User) -> list[PopcatRecord]:
+        return list(
+            map(
+                PopcatRecord.parse_obj,
+                self.__popcat_record_table.find({"card_uid": user.card_uid}),
+            )
         )
 
     async def get_all_popcat(self) -> list[PopcatRecord]:
-        return [
-            PopcatRecord.parse_obj(obj) for obj in self.__popcat_record_table.find()
-        ]
+        return list(map(PopcatRecord.parse_obj, self.__popcat_record_table.find()))
 
-    async def del_all_popcat(self) -> list[PopcatRecord]:
+    async def del_all_popcat(self):
         self.__popcat_record_table.drop()
 
     async def get_dinorun_by_user(self, user: User) -> DinorunRecord:
@@ -171,24 +202,32 @@ class MongoDB(DB):
         )
 
     async def get_all_dinorun(self) -> list[DinorunRecord]:
-        return [
-            DinorunRecord.parse_obj(obj) for obj in self.__dinorun_record_table.find()
-        ]
+        return list(map(DinorunRecord.parse_obj, self.__dinorun_record_table.find()))
 
-    async def del_all_dinorun(self) -> list[DinorunRecord]:
+    async def del_all_dinorun(self):
         self.__dinorun_record_table.drop()
 
     async def new_tap_record(self, record: TapRecord):
         self.__tap_record_table.insert_one(dict(record))
 
     async def get_all_tap_record(self) -> list[TapRecord]:
-        return list(self.__tap_record_table.find())
+        return list(map(TapRecord.parse_obj, self.__tap_record_table.find()))
 
     async def get_tap_record_by_user(self, user: User) -> list[TapRecord]:
-        return list(self.__tap_record_table.find({"card_uid": user.card_uid}))
+        return list(
+            map(
+                TapRecord.parse_obj,
+                self.__tap_record_table.find({"card_uid": user.card_uid}),
+            )
+        )
 
     async def get_tap_record_by_reader(self, reader: CardReader) -> list[TapRecord]:
-        return list(self.__tap_record_table.find({"reader_id": reader.id}))
+        return list(
+            map(
+                TapRecord.parse_obj,
+                self.__tap_record_table.find({"reader_id": reader.id}),
+            )
+        )
 
 
 # class FilesystemDB(DB):

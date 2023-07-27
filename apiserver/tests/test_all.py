@@ -5,6 +5,7 @@ from collections import Counter
 from fastapi.testclient import TestClient
 
 from app import app
+from app.model import PopcatRecord
 from script.create_db import data, main
 
 db_initialized = False
@@ -31,6 +32,18 @@ def test_popcat():
         user2 = data["user"]["user2"]
         user3 = data["user"]["user3"]
 
+        # test if user without any record works properly
+        users = [user1, user2, user3]
+        for user in users:
+            resp = client.get(f"/popcat/{user.card_uid}/score")
+            assert resp.status_code == 200
+            rj = resp.json()
+            assert rj == 0
+            resp = client.get(f"/popcat/{user.card_uid}/record")
+            assert resp.status_code == 200
+            rj = resp.json()
+            assert rj == []
+
         scores = [7, -1, 5]
         users = [user1, user2, user3]
         for score, user in zip(scores, users):
@@ -43,10 +56,15 @@ def test_popcat():
             assert rj[0] == True and isinstance(rj[1], int)
 
             # test get score
-            resp = client.get(f"/popcat/{user.card_uid}")
+            resp = client.get(f"/popcat/{user.card_uid}/score")
             assert resp.status_code == 200
             rj = resp.json()
             assert rj == score
+            resp = client.get(f"/popcat/{user.card_uid}/record")
+            assert resp.status_code == 200
+            record = PopcatRecord.parse_obj(resp.json()[0])
+            assert record.card_uid == user.card_uid
+            assert record.incr == score
 
         # test if the cooldown works
         resp = client.post(f"/tap/popcat/{reader.id}/user/{user.card_uid}?incr={score}")

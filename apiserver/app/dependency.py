@@ -43,16 +43,6 @@ class __CheckCardReaderType:
 CheckCardReaderTypeDep = lambda type: Depends(__CheckCardReaderType(type))
 
 
-async def __get_popcat(user: GetUserDep, db: DBDep) -> PopcatRecord:
-    record = await db.get_popcat_by_user(user)
-    if record is None:
-        raise HTTPException(404, "No popcat record found.")
-    return record
-
-
-GetPopcatDep = Annotated[PopcatRecord, Depends(__get_popcat)]
-
-
 async def __get_dinorun(user: GetUserDep, db: DBDep) -> DinorunRecord:
     record = await db.get_dinorun_by_user(user)
     if record is None:
