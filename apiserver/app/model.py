@@ -16,6 +16,9 @@ class User(BaseModel):
     card_uid: str  # stores bytes.hex()
     type: UserType = UserType.ATTENDEE
 
+    def __hash__(self) -> int:
+        return hash(f"user{self.card_uid}")
+
 
 class TapRecord(BaseModel):
     card_uid: str
@@ -40,6 +43,9 @@ class CardReader(BaseModel):
     time_emoji: list[
         tuple[datetime, str]
     ] = []  # every item is the start time along with the emoji
+
+    def __hash__(self) -> int:
+        return hash(f"reader{self.id}")
 
 
 class PopcatRecord(BaseModel):
