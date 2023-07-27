@@ -3,7 +3,10 @@ from functools import wraps
 from numbers import Number
 from typing import Callable, ParamSpec, TypedDict
 
+# TODO: use aiohttp or other async HTTP libraries
 import requests
+
+from .config import config
 
 
 class DinoDict(TypedDict):
@@ -55,6 +58,8 @@ class Dashboard:
         """
         self.base_url = f"{origin}/api/v1/badge"
         self.headers = {"X-API-KEY": api_key}
+
+        self.disabled = origin == ""
 
     @error_handler
     def create_or_update_dino(self, card_uid: str, score: Number) -> requests.Response:
@@ -112,3 +117,6 @@ class Dashboard:
                 for emoji in emojis
             ]
         )
+
+
+dashboard = Dashboard(config.DASHBOARD_ORIGIN, config.DASHBOARD_APIKEY)
