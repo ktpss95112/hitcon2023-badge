@@ -48,6 +48,12 @@ class CardReader(BaseModel):
         return hash(f"reader{self.id}")
 
 
+class EmojiRecord(BaseModel):
+    card_uid: str
+    time: datetime
+    msg: str
+
+
 class PopcatRecord(BaseModel):
     card_uid: str
     time: datetime

@@ -5,7 +5,7 @@ from collections import Counter
 from fastapi.testclient import TestClient
 
 from app import app
-from app.model import DinorunRecord, PopcatRecord
+from app.model import DinorunRecord, EmojiRecord, PopcatRecord
 from script.create_db import data, main
 
 db_initialized = False
@@ -234,3 +234,37 @@ def test_tap():
         )
         test("/tap/crypto", data["card reader"]["crypto reader"], data["user"]["user1"])
         test("/tap/crypto", data["card reader"]["crypto reader"], data["user"]["user2"])
+
+
+@ensure_db
+def test_emoji():
+    with TestClient(app) as client:
+        reader = data["card reader"]["sponsor emoji flush reader"]
+        user1 = data["user"]["user1"]
+        user2 = data["user"]["user2"]
+        user3 = data["user"]["user3"]
+        users = [user1, user2, user3]
+
+        resp = client.get(f"/emoji")
+        assert resp.status_code == 200
+        len_ = len(resp.json())
+
+        for user in users:
+            resp = client.post(
+                f"/tap/sponsor_flush_emoji/{reader.id}/user/{user.card_uid}",
+                json={"emoji_list": "abc"},
+            )
+            assert resp.status_code == 200
+            assert resp.json()
+
+            resp = client.get(f"/emoji")
+            assert resp.status_code == 200
+            assert len(resp.json()) == len_ + 1
+            assert all(EmojiRecord.parse_obj(record) for record in resp.json())
+            len_ += 1
+
+
+@ensure_db
+def test_dashboard():
+    # TODO
+    pass
