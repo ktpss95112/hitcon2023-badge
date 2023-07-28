@@ -25,14 +25,26 @@ class ChameleonStation:
         self.data = b"\x00" * config.NUM_SECTOR * config.NUM_BLOCK * config.BLOCK_SIZE
 
         self.ui_settings_frame = frames.UISettingsFrame(root)
+        self.ui_settings_frame["padding"] = 5
+        self.ui_settings_frame.grid(column=0, row=0, sticky=(N, E, W))
+        self.root.columnconfigure(0, weight=1)
+
         self.command_frame = frames.CommandFrame(
             root,
             command_scan_card=self.command_scan_card,
             command_show_qrcode=self.command_show_qrcode,
         )
+        self.command_frame["padding"] = 5
+        self.command_frame.grid(column=0, row=1, sticky=(N, E, W))
+        self.root.columnconfigure(0, weight=1)
+
         self.editor_frame = frames.EditorFrame(
             root, command_scan_card=self.command_scan_card
         )
+        self.editor_frame["padding"] = 5
+        self.editor_frame.grid(column=0, row=2, sticky=NSEW)
+        self.root.rowconfigure(2, weight=1)
+        self.root.columnconfigure(0, weight=1)
 
     def command_scan_card(self):
         # TODO: read from arduino
