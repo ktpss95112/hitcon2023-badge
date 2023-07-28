@@ -54,15 +54,7 @@ class PopcatRecord(BaseModel):
     incr: int
 
 
-# TODO: Do not use card_uid as primary key. Store every record separately. See class PopcatRecord.
 class DinorunRecord(BaseModel):
     card_uid: str
-    record: list[
-        tuple[datetime, float]
-    ] = []  # every item is the submission time and the score
-
-    def add_record(self, time: datetime, score: float):
-        self.record.append((time, score))
-
-    def get_best_score(self) -> float:
-        return max((score for time, score in self.record), default=0)
+    time: datetime
+    score: float

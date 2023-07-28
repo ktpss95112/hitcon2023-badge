@@ -5,7 +5,7 @@ from collections import Counter
 from fastapi.testclient import TestClient
 
 from app import app
-from app.model import PopcatRecord
+from app.model import DinorunRecord, PopcatRecord
 from script.create_db import data, main
 
 db_initialized = False
@@ -97,25 +97,50 @@ def test_dinorun():
         user3 = data["user"]["user3"]
         all_users = [user1, user2, user3]
 
+        # test if user without any record works properly
+        users = [user1, user2, user3]
+        for user in users:
+            resp = client.get(f"/dinorun/{user.card_uid}/score")
+            assert resp.status_code == 200
+            rj = resp.json()
+            assert rj == 0
+            resp = client.get(f"/dinorun/{user.card_uid}/record")
+            assert resp.status_code == 200
+            rj = resp.json()
+            assert rj == []
+
         scores = [7.5, 100.235, 5, 300.0, 0.1]
         users = [user1, user2, user3, user1, user2]
         expecteds = [7.5, 100.235, 5, 300.0, 100.235]
-        for score, user, expected in zip(scores, users, expecteds):
+        for i, (score, user, expected) in enumerate(zip(scores, users, expecteds)):
             # test push score
-            print(f"/dinorun/{user.card_uid}?score={score}")
             resp = client.post(f"/dinorun/{user.card_uid}?score={score}")
             assert resp.status_code == 200
             rj = resp.json()
             assert rj == True
 
             # test get score
-            resp = client.get(f"/dinorun/{user.card_uid}")
+            resp = client.get(f"/dinorun/{user.card_uid}/score")
             assert resp.status_code == 200
             rj = resp.json()
             assert rj == expected
+            resp = client.get(f"/dinorun/{user.card_uid}/record")
+            assert resp.status_code == 200
+            rj = resp.json()
+            assert len(rj) == users[: i + 1].count(user)
+            assert all(
+                DinorunRecord.parse_obj(record).card_uid == user.card_uid
+                for record in rj
+            )
 
-        # test all
+        # test all record
         resp = client.get(f"/dinorun/")
+        assert resp.status_code == 200
+        rj = resp.json()
+        assert len(rj) == len(users)
+
+        # test all score
+        resp = client.get(f"/dinorun/score")
         assert resp.status_code == 200
         rj = resp.json()
         for user in all_users:
@@ -146,7 +171,6 @@ def test_tap():
             curr_len_reader = len(
                 client.get(f"/cardreader/{reader_id}/tap_record").json()
             )
-            from pprint import pprint
 
             assert curr_len_user == counter[user]
             assert curr_len_reader == counter[reader]

@@ -69,11 +69,19 @@ class DB(abc.ABC):
         pass
 
     @abc.abstractmethod
-    async def get_dinorun_by_user(self, user: User) -> DinorunRecord:
+    async def new_dinorun(self, record: DinorunRecord):
         pass
 
     @abc.abstractmethod
-    async def write_dinorun(self, record: DinorunRecord):
+    async def get_dinorun_score_by_user(self, user: User) -> float:
+        pass
+
+    @abc.abstractmethod
+    async def get_all_dinorun_score(self) -> dict[str, float]:
+        pass
+
+    @abc.abstractmethod
+    async def get_all_dinorun_by_user(self, user: User) -> list[DinorunRecord]:
         pass
 
     @abc.abstractmethod
@@ -189,16 +197,31 @@ class MongoDB(DB):
     async def del_all_popcat(self):
         self.__popcat_record_table.drop()
 
-    async def get_dinorun_by_user(self, user: User) -> DinorunRecord:
-        obj = self.__dinorun_record_table.find_one({"card_uid": user.card_uid})
-        if obj is None:
-            # If the record is not created before, create it.
-            return DinorunRecord(card_uid=user.card_uid)
-        return DinorunRecord.parse_obj(obj)
+    async def new_dinorun(self, record: DinorunRecord):
+        self.__dinorun_record_table.insert_one(dict(record))
 
-    async def write_dinorun(self, record: DinorunRecord):
-        self.__dinorun_record_table.replace_one(
-            {"card_uid": record.card_uid}, dict(record), upsert=True
+    async def get_dinorun_score_by_user(self, user: User) -> float:
+        # TODO: optimize?
+        tmp = await self.get_all_dinorun_score()
+        return tmp.get(user.card_uid, 0)
+
+    async def get_all_dinorun_score(self) -> dict[str, float]:
+        """
+        The returned dictionary:
+        * key: card_uid
+        * value: score
+        """
+        tmp = self.__dinorun_record_table.aggregate(
+            [{"$group": {"_id": "$card_uid", "score": {"$max": "$score"}}}]
+        )
+        return {result["_id"]: result["score"] for result in tmp}
+
+    async def get_all_dinorun_by_user(self, user: User) -> list[DinorunRecord]:
+        return list(
+            map(
+                DinorunRecord.parse_obj,
+                self.__dinorun_record_table.find({"card_uid": user.card_uid}),
+            )
         )
 
     async def get_all_dinorun(self) -> list[DinorunRecord]:

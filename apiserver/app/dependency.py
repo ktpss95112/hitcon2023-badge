@@ -41,13 +41,3 @@ class __CheckCardReaderType:
 
 
 CheckCardReaderTypeDep = lambda type: Depends(__CheckCardReaderType(type))
-
-
-async def __get_dinorun(user: GetUserDep, db: DBDep) -> DinorunRecord:
-    record = await db.get_dinorun_by_user(user)
-    if record is None:
-        raise HTTPException(404, "No dinorun record found.")
-    return record
-
-
-GetDinorunDep = Annotated[DinorunRecord, Depends(__get_dinorun)]
