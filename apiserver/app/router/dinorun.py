@@ -1,8 +1,8 @@
 from datetime import datetime
 
-from fastapi import APIRouter, BackgroundTasks
+from fastapi import APIRouter, BackgroundTasks, HTTPException
 
-from ..dashboard import dashboard
+from ..dashboard import DinoDict, dashboard
 from ..dependency import DBDep, GetUserDep
 from ..model import DinorunRecord
 
@@ -59,4 +59,15 @@ async def submit_score(
     return True
 
 
-# TODO: endpoint for force pushing data to dashboard
+@router.post("/force_push", tags=["dashboard"])
+async def force_push_dinorun_to_dashboard(db: DBDep) -> bool:
+    if dashboard.disabled:
+        raise HTTPException(500, "No dashboard available in server configuration")
+
+    records = await db.get_all_dinorun_score()
+    return dashboard.batch_create_or_update_dinos(
+        [
+            DinoDict(card_uid=card_uid, score=score)
+            for card_uid, score in records.items()
+        ]
+    )
