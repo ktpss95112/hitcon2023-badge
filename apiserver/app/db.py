@@ -12,7 +12,7 @@ from pydantic import BaseModel
 from pymongo import MongoClient
 
 from .config import config
-from .model import CardReader, DinorunRecord, PopcatRecord, TapRecord, User
+from .model import CardReader, DinorunRecord, EmojiRecord, PopcatRecord, TapRecord, User
 
 
 class DB(abc.ABC):
@@ -108,6 +108,14 @@ class DB(abc.ABC):
     async def get_tap_record_by_reader(self, reader: CardReader) -> list[TapRecord]:
         pass
 
+    @abc.abstractmethod
+    async def new_emoji(self, record: EmojiRecord):
+        pass
+
+    @abc.abstractmethod
+    async def get_all_emoji(self) -> list[EmojiRecord]:
+        pass
+
 
 class MongoDB(DB):
     def __init__(self, client: MongoClient) -> None:
@@ -121,6 +129,7 @@ class MongoDB(DB):
         self.__dinorun_record_table = self.__db[
             config.MONGODB_DINORUN_RECORD_TABLE_NAME
         ]
+        self.__emoji_record_table = self.__db[config.MONGODB_EMOJI_RECORD_TABLE_NAME]
 
         self.__all_collections = [
             self.__user_table,
@@ -128,6 +137,7 @@ class MongoDB(DB):
             self.__card_reader_table,
             self.__popcat_record_table,
             self.__dinorun_record_table,
+            self.__emoji_record_table,
         ]
 
     async def drop_all(self):
@@ -249,6 +259,17 @@ class MongoDB(DB):
             map(
                 TapRecord.parse_obj,
                 self.__tap_record_table.find({"reader_id": reader.id}),
+            )
+        )
+
+    async def new_emoji(self, record: EmojiRecord):
+        self.__emoji_record_table.insert_one(dict(record))
+
+    async def get_all_emoji(self) -> list[EmojiRecord]:
+        return list(
+            map(
+                EmojiRecord.parse_obj,
+                self.__emoji_record_table.find(),
             )
         )
 

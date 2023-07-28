@@ -8,7 +8,14 @@ from ..config import config
 from ..dashboard import dashboard
 from ..db import DB
 from ..dependency import CheckCardReaderTypeDep, DBDep, GetReaderDep, GetUserDep
-from ..model import CardReader, CardReaderType, PopcatRecord, TapRecord, User
+from ..model import (
+    CardReader,
+    CardReaderType,
+    EmojiRecord,
+    PopcatRecord,
+    TapRecord,
+    User,
+)
 
 router = APIRouter(
     prefix="/tap",
@@ -108,6 +115,10 @@ async def tap_sponsor_flush_emoji(
 
     if not show:
         return True
+
+    await db.new_emoji(
+        EmojiRecord(card_uid=user.card_uid, time=datetime.now(), msg=emoji_list)
+    )
 
     # push to frontend
     if not dashboard.disabled:
