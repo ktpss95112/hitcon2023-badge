@@ -72,8 +72,14 @@ def test_popcat():
         rj = resp.json()
         assert rj[0] == False and isinstance(rj[1], int)
 
-        # test all
-        resp = client.get(f"/popcat/")
+        # test all record
+        resp = client.get(f"/popcat")
+        assert resp.status_code == 200
+        rj = resp.json()
+        assert len(rj) == len(users)
+
+        # test all score
+        resp = client.get(f"/popcat/score")
         assert resp.status_code == 200
         rj = resp.json()
         for score, user in zip(scores, users):

@@ -10,7 +10,12 @@ router = APIRouter(
 
 
 @router.get("/")
-async def get_all(db: DBDep) -> dict[str, int]:
+async def get_all_record(db: DBDep) -> list[PopcatRecord]:
+    return await db.get_all_popcat()
+
+
+@router.get("/score")
+async def get_all_score(db: DBDep) -> dict[str, int]:
     """
     The returned object is the mapping of card_uid to score.
     All the records of user who has a popcat record will be returned.
@@ -24,7 +29,7 @@ async def get_score(user: GetUserDep, db: DBDep) -> int:
 
 
 @router.get("/{card_uid}/record")
-async def get_record_by_user(user: GetUserDep, db: DBDep) -> list[PopcatRecord]:
+async def get_record(user: GetUserDep, db: DBDep) -> list[PopcatRecord]:
     return await db.get_all_popcat_by_user(user)
 
 
