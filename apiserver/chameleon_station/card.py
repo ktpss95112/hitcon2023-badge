@@ -17,19 +17,12 @@ class Card:
         assert len(data) == config.NUM_SECTOR * config.NUM_BLOCK * config.BLOCK_SIZE
         return data
 
-    def write_chunk(self, data: bytes, sector: int, block: int, chunk: int):
-        assert len(data) == config.DISPLAY_CHUNK
+    def write_block(self, data: bytes, i_sector: int, i_block: int):
+        assert len(data) == config.BLOCK_SIZE
         # TODO
-        start = (
-            sector * config.NUM_BLOCK + block
-        ) * config.BLOCK_SIZE + chunk * config.DISPLAY_CHUNK
-        end = start + config.DISPLAY_CHUNK
+        start = (i_sector * config.NUM_BLOCK + i_block) * config.BLOCK_SIZE
+        end = start + config.BLOCK_SIZE
         self.data = self.data[:start] + data + self.data[end:]
-
-    def write_halfblock(self, data: bytes, start=0):
-        assert len(data) == config.BLOCK_SIZE // 2
-        assert start == 0 or start == config.BLOCK_SIZE
-        # TODO
 
 
 card = Card()

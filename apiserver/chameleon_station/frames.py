@@ -205,18 +205,21 @@ string: {decoded}
         self.inspect_write_fields = {
             "sector": create_field("sector", 0),
             "block": create_field("block", 1),
-            "chunk": create_field("chunk", 2),
-            "data": create_field("data", 3),
+            **{f"data{i}": create_field(f"data{i}", i + 2) for i in range(4)},
         }
 
         def write_card(*args):
             try:
-                data = bytes.fromhex(self.inspect_write_fields["data"].get())
                 sector = int(self.inspect_write_fields["sector"].get())
                 block = int(self.inspect_write_fields["block"].get())
-                chunk = int(self.inspect_write_fields["chunk"].get())
+                data = b"".join(
+                    [
+                        bytes.fromhex(self.inspect_write_fields[f"data{i}"].get())
+                        for i in range(4)
+                    ]
+                )
 
-                card.write_chunk(data, sector, block, chunk)
+                card.write_block(data, sector, block)
             except:
                 # TODO: error handling (popup error message)
                 return
@@ -226,7 +229,7 @@ string: {decoded}
         write_button = ttk.Button(self.inspect_write_frame)
         write_button["text"] = "write card"
         write_button["command"] = write_card
-        write_button.grid(column=0, row=5, columnspan=2)
+        write_button.grid(column=0, row=len(self.inspect_write_fields), columnspan=2)
 
     def set_selection_action(self):
         """
@@ -310,19 +313,25 @@ string: {decoded}
                             if chunk_tag.i_block == 3:
                                 return
                             if type_ == "click":
-                                start, end, *_ = self.text.tag_ranges(chunk_tag)
-                                content = self.text.get(start, end)
-                                self.inspect_data.set(content)
                                 self.inspect_write_fields["sector"].set(
                                     chunk_tag.i_sector
                                 )
                                 self.inspect_write_fields["block"].set(
                                     chunk_tag.i_block
                                 )
-                                self.inspect_write_fields["chunk"].set(
-                                    chunk_tag.i_chunk
-                                )
-                                self.inspect_write_fields["data"].set(content)
+                                for i_chunk in range(4):
+                                    tag = ChunkTag(
+                                        i_sector=chunk_tag.i_sector,
+                                        i_block=chunk_tag.i_block,
+                                        i_chunk=i_chunk,
+                                    )
+                                    start, end, *_ = self.text.tag_ranges(tag)
+                                    content = self.text.get(start, end)
+                                    if i_chunk == chunk_tag.i_chunk:
+                                        self.inspect_data.set(content)
+                                    self.inspect_write_fields[f"data{i_chunk}"].set(
+                                        content
+                                    )
                             else:
                                 bg_color = "" if type_ == "leave" else "yellow"
                                 self.text.tag_configure(chunk_tag, background=bg_color)
@@ -358,7 +367,7 @@ string: {decoded}
 
 # Just a utility class.
 class ChunkTag(UserString):
-    def __init__(self, *args) -> None:
+    def __init__(self, *args, **kwargs) -> None:
         """
         ChunkTag(tag_name)
         ChunkTag(i_sector, i_block, i_chunk)
@@ -368,6 +377,12 @@ class ChunkTag(UserString):
             i_sector, i_block, i_chunk = map(int, args[0].split("."))
         elif len(args) == 3:
             i_sector, i_block, i_chunk = args
+        elif len(args) == 0 and len(kwargs) == 3:
+            i_sector, i_block, i_chunk = (
+                kwargs["i_sector"],
+                kwargs["i_block"],
+                kwargs["i_chunk"],
+            )
         else:
             raise ValueError("Invalid arguments")
 
