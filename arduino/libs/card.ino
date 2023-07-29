@@ -160,10 +160,13 @@ namespace card {
 	}
 
 	bool read_uuid(byte *buf) {
+		byte block0[BLKSIZE];
 		bool res = auth_b(0);
 		if (!res)
 			return false;
-		res = read_block(buf, 0, 0, BLKSIZE);
+		res = read_block(block0, 0, 0, BLKSIZE);
+		if (res)
+			memcpy(buf, block0, UUIDSIZE);
 		return res;
 	}
 
