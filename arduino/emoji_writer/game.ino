@@ -166,19 +166,19 @@ namespace game {
 			Serial.printf("%c", data[i]);
 		Serial.println();
 
-		byte uuid[card::UUIDSIZE];
-		res = card::read_uuid(uuid);
+		byte uid[card::UIDSIZE];
+		res = card::read_uid(uid);
 		if (!res) {
-			Serial.println("failed to read the UUID");
+			Serial.println("failed to read the UID");
 			return;
 		}
 
 		String path = flush_path;
 		path += reader_id;
 		path += "/user/";
-		path += util::bytes_to_str(uuid, card::UUIDSIZE);
-		Serial.println("uuid:");
-		Serial.println(util::bytes_to_str(uuid, card::UUIDSIZE));
+		path += util::bytes_to_str(uid, card::UIDSIZE);
+		Serial.println("uid:");
+		Serial.println(util::bytes_to_str(uid, card::UIDSIZE));
 
 		/* The *3 is just an approximation. */
 		DynamicJsonDocument doc(cur_len * 3);
