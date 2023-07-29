@@ -6,9 +6,9 @@ void setup() {
 	card::setup();
 }
 
-void write_uuid() {
+void write_uid() {
 	byte uuid[] = {0xde, 0xad, 0xbe, 0xef};
-	if (card::write_uuid(uuid))
+	if (card::write_uid(uuid))
 		Serial.println("write success");
 	else
 		Serial.println("write failed");
@@ -17,6 +17,6 @@ void write_uuid() {
 void loop() {
 	if (!card::legal_new_card())
 		return;
-	write_uuid();
+	write_uid();
 	card::done();
 }

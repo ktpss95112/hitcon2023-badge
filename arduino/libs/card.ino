@@ -158,18 +158,18 @@ namespace card {
 		return nbyte - remaining;
 	}
 
-	bool read_uuid(byte *buf) {
+	bool read_uid(byte *buf) {
 		byte block0[BLKSIZE];
 		bool res = auth_b(0);
 		if (!res)
 			return false;
 		res = read_block(block0, 0, 0, BLKSIZE);
 		if (res)
-			memcpy(buf, block0, UUIDSIZE);
+			memcpy(buf, block0, UIDSIZE);
 		return res;
 	}
 
-	bool write_uuid(byte *uuid) {
+	bool write_uid(byte *uid) {
 		byte buf[BLKSIZE];
 		int i;
 		byte checksum;
@@ -182,11 +182,11 @@ namespace card {
 			return false;
 
 		checksum = 0;
-		for (i = 0; i < UUIDSIZE; ++i) {
-			buf[i] = uuid[i];
-			checksum ^= uuid[i];
+		for (i = 0; i < UIDSIZE; ++i) {
+			buf[i] = uid[i];
+			checksum ^= uid[i];
 		}
-		buf[UUIDSIZE] = checksum;
+		buf[UIDSIZE] = checksum;
 
 		res = write_block(buf, 0, 0, BLKSIZE);
 		return res;
