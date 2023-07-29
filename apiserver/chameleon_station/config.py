@@ -12,5 +12,8 @@ class Config:
 
     DEFAULT_FONT_SCALE = 1.2
 
+    SERIAL_PORT = "/dev/ttyUSB0"
+    SERIAL_BAUDRATE = 9600
+
 
 config = Config()
