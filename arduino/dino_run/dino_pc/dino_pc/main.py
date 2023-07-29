@@ -4,24 +4,11 @@ from pathlib import Path
 
 import aiohttp
 from aiohttp import web
-from aiohttp.web_urldispatcher import StaticResource
 
 from dino_pc.aio_serial import connect_serial
 from dino_pc.cardkey import CardKey
+from dino_pc.middlewares import static_middleware
 
-
-def inject_static():
-    _prev_func = StaticResource._directory_as_html
-
-    def _directory_as_html(self, filepath: Path) -> str:
-        if Path(filepath, "index.html").is_file():
-            return Path(filepath, "index.html").read_text()
-        return _prev_func(self, filepath)
-
-    StaticResource._directory_as_html = _directory_as_html
-
-
-inject_static()
 
 gws: web.WebSocketResponse = None
 
@@ -67,11 +54,12 @@ async def main():
     pser.add_argument("-r", "--baudrate", type=int, default=9600)
     args = pser.parse_args()
 
-    app = web.Application()
+    app = web.Application(
+        middlewares=[static_middleware("/", Path(__file__, "..", "public").resolve())]
+    )
     app.add_routes(
         [
             web.get("/ws", websocket_handler),
-            web.static("/", Path(__file__, "..", "public"), show_index=True),
         ]
     )
 
@@ -85,7 +73,7 @@ async def main():
     if args.port != 80:
         web_display_url = f"{web_display_url}:{args.port}"
     print(f"web server listening on {web_display_url}")
-    print("connection to serial...")
+    print("connecting to serial...")
 
     while True:
         serial_proto = await connect_serial(
