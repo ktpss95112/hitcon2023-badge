@@ -27,15 +27,11 @@ class ChameleonStation:
         self.command_frame.grid(column=0, row=1, sticky=(N, E, W))
         self.root.columnconfigure(0, weight=1)
 
-        self.editor_frame = frames.EditorFrame(
-            root, command_scan_card=self.command_frame._command_scan_card
-        )
+        self.editor_frame = frames.EditorFrame(root, command_frame=self.command_frame)
         self.editor_frame["padding"] = 5
         self.editor_frame.grid(column=0, row=2, sticky=NSEW)
         self.root.rowconfigure(2, weight=1)
         self.root.columnconfigure(0, weight=1)
-
-        self.command_frame._set_scan_card_callback(self.editor_frame._update_content)
 
     def mainloop(self):
         return self.root.mainloop()

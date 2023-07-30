@@ -116,19 +116,26 @@ class CommandFrame(ttk.LabelFrame):
 
 
 class EditorFrame(ttk.Frame):
-    def __init__(self, parent: Misc, command_scan_card: Callable) -> None:
+    def __init__(self, parent: Misc, command_frame: CommandFrame) -> None:
         super().__init__(parent)
 
         # setup hex view frame
-        self.__hex_view_frame = EditorHexViewFrame(self)
+        self.__hex_view_frame = _EditorHexViewFrame(self, command_frame=command_frame)
         self.__hex_view_frame.grid(column=0, row=0, sticky=NSEW)
         self.rowconfigure(0, weight=1)
         self.columnconfigure(0, weight=1)
 
-        # setup inspect frame
-        self.__inspect_frame = EditorInspectFrame(self)
+        # setup data inspector frame
+        self.__inspect_frame = _EditorInspectFrame(self, command_frame=command_frame)
         self.__inspect_frame["padding"] = 5
         self.__inspect_frame.grid(column=1, row=0, sticky=NSEW)
+
+        # setup game inspector frame
+        self.__game_inspector_frame = _GameInspectorFrame(
+            self, hex_view_frame=self.__hex_view_frame, command_frame=command_frame
+        )
+        self.__game_inspector_frame["padding"] = 5
+        self.__game_inspector_frame.grid(column=2, row=0, sticky=NSEW)
 
         # setup communication utilities
         self.__hex_view_frame._set_inspect_data_setter(
@@ -137,18 +144,9 @@ class EditorFrame(ttk.Frame):
         self.__hex_view_frame._set_inspect_write_fields(
             self.__inspect_frame._write_card_fields
         )
-        self.__inspect_frame._set_scan_card_command(command_scan_card)
-
-    def _update_content(self, data: bytes):
-        self.__hex_view_frame._update_content(data)
-
-    def _clear_content(self):
-        self.__hex_view_frame._update_content(
-            b"\x00" * config.NUM_SECTOR * config.NUM_BLOCK * config.BLOCK_SIZE
-        )
 
 
-class EditorHexViewFrame(ttk.Frame):
+class _EditorHexViewFrame(ttk.Frame):
     """
         Looks like:
     ```
@@ -167,7 +165,7 @@ class EditorHexViewFrame(ttk.Frame):
     ```
     """
 
-    def __init__(self, parent: Misc):
+    def __init__(self, parent: Misc, command_frame: CommandFrame):
         super().__init__(parent)
 
         self.__text = Text(self)
@@ -176,10 +174,7 @@ class EditorHexViewFrame(ttk.Frame):
         self.rowconfigure(0, weight=1)
         self.columnconfigure(0, weight=1)
 
-        # clear
-        self._update_content(
-            b"\x00" * config.NUM_SECTOR * config.NUM_BLOCK * config.BLOCK_SIZE
-        )
+        self._clear_content()
 
         scrollbar_y = ttk.Scrollbar(self, orient=VERTICAL)
         scrollbar_y["command"] = self.__text.yview
@@ -191,13 +186,23 @@ class EditorHexViewFrame(ttk.Frame):
         self.__text["xscrollcommand"] = scrollbar_x.set
         scrollbar_x.grid(column=0, row=1, sticky=EW)
 
+        command_frame._set_scan_card_callback(self._update_content)
         self.__set_callback_on_selection()
+
+    @property
+    def _text(self):
+        return self.__text
 
     def _set_inspect_write_fields(self, inspect_write_fields: dict[str, StringVar]):
         self.__inspect_write_fields = inspect_write_fields
 
     def _set_inspect_data_setter(self, inspect_data_setter: Callable):
         self.__inspect_data_setter = inspect_data_setter
+
+    def _clear_content(self):
+        self._update_content(
+            b"\x00" * config.NUM_SECTOR * config.NUM_BLOCK * config.BLOCK_SIZE
+        )
 
     def _update_content(self, data: bytes):
         # ensure that the length of data is correct
@@ -331,25 +336,26 @@ class EditorHexViewFrame(ttk.Frame):
         self.__text.bind("<<Selection>>", update_inspect_data)
 
 
-class EditorInspectFrame(ttk.Frame):
-    def __init__(self, parent: Misc):
+class _EditorInspectFrame(ttk.Frame):
+    def __init__(self, parent: Misc, command_frame: CommandFrame):
         super().__init__(parent)
 
-        self.__data_view_frame = EditorInspectDataViewFrame(self)
+        self.__data_view_frame = _EditorInspectDataViewFrame(self)
         self.__data_view_frame["padding"] = 5
         self.__data_view_frame.grid(column=0, row=0, sticky=NSEW)
 
-        self.__write_card_frame = EditorInspectWriteCardFrame(self)
+        self.__write_card_frame = _EditorInspectWriteCardFrame(
+            self, scan_card_command=command_frame._command_scan_card
+        )
         self.__write_card_frame["padding"] = 5
         self.__write_card_frame.grid(column=0, row=1, sticky=NSEW)
 
         # export some private functions/properties
         self._set_inspect_data = self.__data_view_frame._set_inspect_data
         self._write_card_fields = self.__write_card_frame._write_card_fields
-        self._set_scan_card_command = self.__write_card_frame._set_scan_card_command
 
 
-class EditorInspectDataViewFrame(ttk.LabelFrame):
+class _EditorInspectDataViewFrame(ttk.LabelFrame):
     def __init__(self, parent: Misc):
         super().__init__(parent)
         self["text"] = "Data Inspector"
@@ -396,11 +402,14 @@ uint16: {struct.unpack('<H', data_bytes[0:2])[0]:>9d} {struct.unpack('<H', data_
   int8: {struct.unpack('<b', data_bytes[0:1])[0]:>4d} {struct.unpack('<b', data_bytes[1:2])[0]:>4d} {struct.unpack('<b', data_bytes[2:3])[0]:>4d} {struct.unpack('<b', data_bytes[3:4])[0]:>4d}
 
 string: {decoded}
-"""
+""".replace(
+            "\x00", ""
+        )
 
 
-class EditorInspectWriteCardFrame(ttk.LabelFrame):
-    def __init__(self, parent: Misc):
+class _EditorInspectWriteCardFrame(ttk.LabelFrame):
+    def __init__(self, parent: Misc, scan_card_command: Callable):
+        self.__scan_card_command = scan_card_command
         super().__init__(parent)
         self["text"] = "Card Writer"
 
@@ -428,9 +437,6 @@ class EditorInspectWriteCardFrame(ttk.LabelFrame):
         write_button["command"] = self.__write_card
         write_button.grid(column=0, row=len(self._write_card_fields), columnspan=2)
 
-    def _set_scan_card_command(self, scan_card_command: Callable):
-        self.__scan_card_command = scan_card_command
-
     def __write_card(self, *args):
         """
         This is the callback of the "write card" button.
@@ -451,6 +457,85 @@ class EditorInspectWriteCardFrame(ttk.LabelFrame):
             return
 
         self.__scan_card_command()
+
+
+class _GameInspectorFrame(ttk.Frame):
+    def __init__(
+        self,
+        parent: Misc,
+        hex_view_frame: _EditorHexViewFrame,
+        command_frame: CommandFrame,
+    ):
+        super().__init__(parent)
+
+        self.__emoji_inspector_frame = _GameEmojiInspectorFrame(
+            self, hex_view_frame=hex_view_frame
+        )
+        self.__emoji_inspector_frame["padding"] = 5
+        self.grid(column=0, row=0, sticky=(N, E, W))
+
+        command_frame._set_scan_card_callback(self._scan_card_callback)
+
+    def _scan_card_callback(self, data: bytes):
+        self.__emoji_inspector_frame._scan_card_callback(data)
+
+
+class _GameEmojiInspectorFrame(ttk.LabelFrame):
+    def __init__(self, parent: Misc, hex_view_frame: _EditorHexViewFrame):
+        super().__init__(parent)
+        self.__hex_view_frame = hex_view_frame
+
+        # TODO: better way to configure this in config.py?
+        self.__emoji_tags = [
+            ChunkTag(i_sector, i_block, i_chunk)
+            for i_chunk in range(4)
+            for i_sector, i_block in (
+                (0, 1),
+                (0, 2),
+                (1, 0),
+                (1, 1),
+                (1, 2),
+                (2, 0),
+                (2, 1),
+                (2, 2),
+                (3, 0),
+                (3, 1),
+                (3, 2),
+                (4, 0),
+                (4, 1),
+                (4, 2),
+            )
+        ]
+        self.__emoji_size_tag = ChunkTag(4, 2, 3)
+        self.__tag_name_content = "emoji content highlight"
+        self.__tag_name_size = "emoji size highlight"
+
+        self._setup_emoji_tags()
+
+    def _setup_emoji_tags(self):
+        self.__hex_view_frame._text.tag_configure(
+            self.__tag_name_content, background="light cyan"
+        )
+        self.__hex_view_frame._text.tag_configure(
+            self.__tag_name_size, background="light blue"
+        )
+
+        # setup highlight of emoji content
+        for chunk_tag in self.__emoji_tags:
+            start, end, *_ = self.__hex_view_frame._text.tag_ranges(chunk_tag)
+            self.__hex_view_frame._text.tag_add(self.__tag_name_content, start, end)
+
+        # setup highlight of emoji size
+        start, end, *_ = self.__hex_view_frame._text.tag_ranges(self.__emoji_size_tag)
+        self.__hex_view_frame._text.tag_add(self.__tag_name_size, start, end)
+
+        self.__hex_view_frame._text.tag_lower(self.__tag_name_size, belowThis=SEL)
+        self.__hex_view_frame._text.tag_lower(
+            self.__tag_name_content, belowThis=self.__tag_name_size
+        )
+
+    def _scan_card_callback(self, data: bytes):
+        self._setup_emoji_tags()
 
 
 # Just a utility class.
