@@ -5,6 +5,9 @@ from tkinter import font as tkFont
 from tkinter import ttk
 from typing import Callable, Literal
 
+import PIL.ImageTk
+import qrcode
+
 from .card import card
 from .config import config
 
@@ -52,29 +55,64 @@ class UISettingsFrame(ttk.LabelFrame):
 
 
 class CommandFrame(ttk.LabelFrame):
-    def __init__(
-        self, parent: Misc, command_scan_card: Callable, command_show_qrcode: Callable
-    ) -> None:
+    def __init__(self, parent: Misc) -> None:
         super().__init__(parent)
         self["text"] = "Commands"
 
         self.__scan_card_button = ttk.Button(self)
         self.__scan_card_button["text"] = "Scan Card"
-        self.__scan_card_button["command"] = command_scan_card
+        self.__scan_card_button["command"] = self._command_scan_card
         self.__scan_card_button.grid(column=0, row=0)
         self.__scan_card_button.focus()
 
         self.__show_qrcode_button = ttk.Button(self)
         self.__show_qrcode_button["text"] = "Show QR Code"
-        self.__show_qrcode_button["command"] = command_show_qrcode
+        self.__show_qrcode_button["command"] = self._command_show_qrcode
         self.__show_qrcode_button.grid(column=1, row=0)
-        self.disable_qrcode_button()
+        self.__disable_qrcode_button()
 
-    def enable_qrcode_button(self):
+        self.__scan_card_callback: list[Callable] = []
+
+    def __enable_qrcode_button(self):
         self.__show_qrcode_button.state(["!disabled"])
 
-    def disable_qrcode_button(self):
+    def __disable_qrcode_button(self):
         self.__show_qrcode_button.state(["disabled"])
+
+    def _set_scan_card_callback(self, callback: Callable):
+        self.__scan_card_callback.append(callback)
+
+    def _command_scan_card(self):
+        # TODO: progress bar
+        try:
+            self.data = data = card.read_all()
+            success = True
+        except:
+            data = b"\x00" * config.NUM_SECTOR * config.NUM_BLOCK * config.BLOCK_SIZE
+            success = False
+
+        for callback in self.__scan_card_callback:
+            callback(data)
+
+        if success:
+            self.__enable_qrcode_button()
+        else:
+            self.__disable_qrcode_button()
+
+    def _command_show_qrcode(self):
+        popup_window = Toplevel(self)
+        popup_window.geometry(f"{config.QRCODE_SIZE}x{config.QRCODE_SIZE}")
+
+        card_uid = self.data[:4]
+        qrcode_content = card_uid.hex()
+        self.qrcode_img = PIL.ImageTk.PhotoImage(
+            qrcode.make(qrcode_content).resize((config.QRCODE_SIZE, config.QRCODE_SIZE))
+        )
+
+        canvas = Canvas(popup_window)
+        canvas["width"] = canvas["height"] = config.QRCODE_SIZE
+        canvas.grid()
+        canvas.create_image(0, 0, image=self.qrcode_img, anchor=NW)
 
 
 class EditorFrame(ttk.Frame):
@@ -101,10 +139,10 @@ class EditorFrame(ttk.Frame):
         )
         self.__inspect_frame._set_scan_card_command(command_scan_card)
 
-    def update_content(self, data: bytes):
+    def _update_content(self, data: bytes):
         self.__hex_view_frame._update_content(data)
 
-    def clear_content(self):
+    def _clear_content(self):
         self.__hex_view_frame._update_content(
             b"\x00" * config.NUM_SECTOR * config.NUM_BLOCK * config.BLOCK_SIZE
         )

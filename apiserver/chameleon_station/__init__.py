@@ -8,12 +8,7 @@ TODO: features
 from tkinter import *
 from tkinter import ttk
 
-import PIL.ImageTk
-import qrcode
-
 from . import frames
-from .card import card
-from .config import config
 
 
 class ChameleonStation:
@@ -22,60 +17,25 @@ class ChameleonStation:
         root.title("Chameleon Station of Badge Mini Games")
         root.geometry("1200x800")
 
-        self.data = b"\x00" * config.NUM_SECTOR * config.NUM_BLOCK * config.BLOCK_SIZE
-
         self.ui_settings_frame = frames.UISettingsFrame(root)
         self.ui_settings_frame["padding"] = 5
         self.ui_settings_frame.grid(column=0, row=0, sticky=(N, E, W))
         self.root.columnconfigure(0, weight=1)
 
-        self.command_frame = frames.CommandFrame(
-            root,
-            command_scan_card=self.command_scan_card,
-            command_show_qrcode=self.command_show_qrcode,
-        )
+        self.command_frame = frames.CommandFrame(root)
         self.command_frame["padding"] = 5
         self.command_frame.grid(column=0, row=1, sticky=(N, E, W))
         self.root.columnconfigure(0, weight=1)
 
         self.editor_frame = frames.EditorFrame(
-            root, command_scan_card=self.command_scan_card
+            root, command_scan_card=self.command_frame._command_scan_card
         )
         self.editor_frame["padding"] = 5
         self.editor_frame.grid(column=0, row=2, sticky=NSEW)
         self.root.rowconfigure(2, weight=1)
         self.root.columnconfigure(0, weight=1)
 
-    def command_scan_card(self):
-        # TODO: read from arduino
-        # TODO: progress bar
-        try:
-            self.data = data = card.read_all()
-            success = True
-        except:
-            success = False
-
-        if success:
-            self.editor_frame.update_content(data)
-            self.command_frame.enable_qrcode_button()
-        else:
-            self.editor_frame.clear_content()
-            self.command_frame.disable_qrcode_button()
-
-    def command_show_qrcode(self):
-        popup_window = Toplevel(self.root)
-        popup_window.geometry(f"{config.QRCODE_SIZE}x{config.QRCODE_SIZE}")
-
-        card_uid = self.data[:4]
-        qrcode_content = card_uid.hex()
-        self.qrcode_img = PIL.ImageTk.PhotoImage(
-            qrcode.make(qrcode_content).resize((config.QRCODE_SIZE, config.QRCODE_SIZE))
-        )
-
-        canvas = Canvas(popup_window)
-        canvas["width"] = canvas["height"] = config.QRCODE_SIZE
-        canvas.grid()
-        canvas.create_image(0, 0, image=self.qrcode_img, anchor=NW)
+        self.command_frame._set_scan_card_callback(self.editor_frame._update_content)
 
     def mainloop(self):
         return self.root.mainloop()
