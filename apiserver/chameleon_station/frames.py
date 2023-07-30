@@ -483,6 +483,7 @@ class _GameInspectorFrame(ttk.Frame):
 class _GameEmojiInspectorFrame(ttk.LabelFrame):
     def __init__(self, parent: Misc, hex_view_frame: _EditorHexViewFrame):
         super().__init__(parent)
+        self["text"] = "Emoji Game Inspector"
         self.__hex_view_frame = hex_view_frame
 
         # TODO: better way to configure this in config.py?
@@ -510,9 +511,14 @@ class _GameEmojiInspectorFrame(ttk.LabelFrame):
         self.__tag_name_content = "emoji content highlight"
         self.__tag_name_size = "emoji size highlight"
 
-        self._setup_emoji_tags()
+        self.__setup_emoji_tags()
 
-    def _setup_emoji_tags(self):
+        # create inspector frame
+        self.__emoji_content_label = ttk.Label(self)
+        self.__update_emoji_label()
+        self.grid(column=0, row=0, sticky=NSEW)
+
+    def __setup_emoji_tags(self):
         self.__hex_view_frame._text.tag_configure(
             self.__tag_name_content, background="light cyan"
         )
@@ -534,8 +540,48 @@ class _GameEmojiInspectorFrame(ttk.LabelFrame):
             self.__tag_name_content, belowThis=self.__tag_name_size
         )
 
+    def __update_emoji_label(self):
+        start, end, *_ = self.__hex_view_frame._text.tag_ranges(self.__emoji_size_tag)
+        content = self.__hex_view_frame._text.get(start, end)
+        try:
+            emoji_len = int.from_bytes(bytes.fromhex(content), "little")
+        except:
+            emoji_len = -1
+
+        emoji_str_raw = ""
+        for chunk_tag in self.__emoji_tags:
+            start, end, *_ = self.__hex_view_frame._text.tag_ranges(chunk_tag)
+            content = self.__hex_view_frame._text.get(start, end)
+            emoji_str_raw += content
+        try:
+            emoji_str_raw = bytes.fromhex(emoji_str_raw)
+        except:
+            emoji_len = -1
+            emoji_str_raw = b""
+
+        # extract the valid part
+        end = len(emoji_str_raw)
+        while True:
+            try:
+                emoji_str = emoji_str_raw[:end].decode()[:emoji_len]
+                break
+            except UnicodeDecodeError as e:
+                end = e.start
+        if len(emoji_str) != emoji_len:
+            emoji_str = "<error>"
+
+        self.__emoji_content_label[
+            "text"
+        ] = f"""
+Field: Length = {emoji_len}
+Field: Content = {emoji_str}
+""".replace(
+            "\x00", ""
+        )
+
     def _scan_card_callback(self, data: bytes):
-        self._setup_emoji_tags()
+        self.__setup_emoji_tags()
+        self.__update_emoji_label()
 
 
 # Just a utility class.
