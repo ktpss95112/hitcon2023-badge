@@ -41,6 +41,8 @@ class CardKey:
 
     def on_card_down(self, callback: Callable):
         self.card_down_callback = callback
+        return callback
 
     def on_card_up(self, callback: Callable):
         self.card_up_callback = callback
+        return callback
