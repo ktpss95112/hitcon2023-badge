@@ -117,7 +117,3 @@ try:
     asyncio.run(main())
 except KeyboardInterrupt:
     print("stop")
-
-import serial
-
-serial.Serial()
