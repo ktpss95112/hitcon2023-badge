@@ -278,8 +278,7 @@ class _EditorHexViewFrame(ttk.Frame):
                                         i_block=chunk_tag.i_block,
                                         i_chunk=i_chunk,
                                     )
-                                    start, end, *_ = self.__text.tag_ranges(tag)
-                                    content = self.__text.get(start, end)
+                                    content = tag.in_text(self.__text)
                                     self.__inspect_write_fields[f"data{i_chunk}"].set(
                                         content
                                     )
@@ -472,7 +471,7 @@ class _GameInspectorFrame(ttk.Frame):
             self, hex_view_frame=hex_view_frame
         )
         self.__emoji_inspector_frame["padding"] = 5
-        self.grid(column=0, row=0, sticky=(N, E, W))
+        self.__emoji_inspector_frame.grid(column=0, row=0, sticky=(N, E, W))
 
         command_frame._set_scan_card_callback(self._scan_card_callback)
 
@@ -489,7 +488,6 @@ class _GameEmojiInspectorFrame(ttk.LabelFrame):
         # TODO: better way to configure this in config.py?
         self.__emoji_tags = [
             ChunkTag(i_sector, i_block, i_chunk)
-            for i_chunk in range(4)
             for i_sector, i_block in (
                 (0, 1),
                 (0, 2),
@@ -506,6 +504,7 @@ class _GameEmojiInspectorFrame(ttk.LabelFrame):
                 (4, 1),
                 (4, 2),
             )
+            for i_chunk in range(4)
         ]
         self.__emoji_size_tag = ChunkTag(4, 2, 3)
         self.__tag_name_content = "emoji content highlight"
@@ -516,7 +515,7 @@ class _GameEmojiInspectorFrame(ttk.LabelFrame):
         # create inspector frame
         self.__emoji_content_label = ttk.Label(self)
         self.__update_emoji_label()
-        self.grid(column=0, row=0, sticky=NSEW)
+        self.__emoji_content_label.grid(column=0, row=0, sticky=NSEW)
 
     def __setup_emoji_tags(self):
         self.__hex_view_frame._text.tag_configure(
@@ -541,33 +540,32 @@ class _GameEmojiInspectorFrame(ttk.LabelFrame):
         )
 
     def __update_emoji_label(self):
-        start, end, *_ = self.__hex_view_frame._text.tag_ranges(self.__emoji_size_tag)
-        content = self.__hex_view_frame._text.get(start, end)
+        text = self.__hex_view_frame._text  # alias
+
         try:
+            # get length info from card
+            content = self.__emoji_size_tag.in_text(text)
             emoji_len = int.from_bytes(bytes.fromhex(content), "little")
-        except:
-            emoji_len = -1
 
-        emoji_str_raw = ""
-        for chunk_tag in self.__emoji_tags:
-            start, end, *_ = self.__hex_view_frame._text.tag_ranges(chunk_tag)
-            content = self.__hex_view_frame._text.get(start, end)
-            emoji_str_raw += content
-        try:
-            emoji_str_raw = bytes.fromhex(emoji_str_raw)
-        except:
-            emoji_len = -1
-            emoji_str_raw = b""
+            # get the hex of emoji bytes
+            emoji_str_raw_hex = "".join(
+                [chunk_tag.in_text(text) for chunk_tag in self.__emoji_tags]
+            )
+            emoji_str_raw = bytes.fromhex(emoji_str_raw_hex)
 
-        # extract the valid part
-        end = len(emoji_str_raw)
-        while True:
-            try:
-                emoji_str = emoji_str_raw[:end].decode()[:emoji_len]
-                break
-            except UnicodeDecodeError as e:
-                end = e.start
-        if len(emoji_str) != emoji_len:
+            # extract the valid part
+            end = len(emoji_str_raw)
+            while True:
+                try:
+                    emoji_str = emoji_str_raw[:end].decode()[:emoji_len]
+                    break
+                except UnicodeDecodeError as e:
+                    end = e.start
+            if len(emoji_str) != emoji_len:
+                emoji_str = "<error>"
+
+        except Exception as e:
+            emoji_len = -1
             emoji_str = "<error>"
 
         self.__emoji_content_label[
@@ -637,3 +635,8 @@ class ChunkTag(UserString):
     def i_chunk(self, i_chunk):
         self._i_chunk = i_chunk
         self.data = f"{self._i_sector}.{self._i_block}.{self._i_chunk}"
+
+    def in_text(self, text: Text):
+        start, end, *_ = text.tag_ranges(self)
+        content = text.get(start, end)
+        return content
