@@ -28,7 +28,7 @@ class CardArduino(Card):
     def __init__(self, serial: pyserial.Serial):
         self.serial = serial
 
-        self.__communicate(command=b"INIT\n", recv_should_be=b"I")
+        self.__communicate(command=b"INIT\n", recv_start_with=b"I")
 
     def __consume_trailing_newline(self):
         self.serial.readline()
@@ -36,7 +36,7 @@ class CardArduino(Card):
     def __communicate(
         self,
         command: bytes,
-        recv_should_be: bytes,
+        recv_start_with: bytes,
         recv_callback=__consume_trailing_newline,
     ):
         self.serial.write(command)
@@ -47,7 +47,7 @@ class CardArduino(Card):
                 raise Exception(reason)
             elif c == b"D":
                 msg = self.serial.readline().strip()
-            elif c == recv_should_be:
+            elif c == recv_start_with:
                 return recv_callback()
 
     def read_block(self, i_block: int) -> bytes:
@@ -58,7 +58,7 @@ class CardArduino(Card):
 
         return self.__communicate(
             command=f"READ\n{i_block}\n".encode(),
-            recv_should_be="O",
+            recv_start_with="O",
             recv_callback=callback,
         )
 
@@ -66,16 +66,16 @@ class CardArduino(Card):
         assert len(data) == config.BLOCK_SIZE
         block_id = i_sector * config.NUM_BLOCK + i_block
         self.__communicate(
-            command=f"WRITE\n{block_id}\n".encode() + data + b"\n", recv_should_be="O"
+            command=f"WRITE\n{block_id}\n".encode() + data + b"\n", recv_start_with="O"
         )
 
     def write_uid(self, data: bytes):
         assert len(data) == 4
-        self.__communicate(command=b"WRITE_UID\n" + data + b"\n", recv_should_be="O")
+        self.__communicate(command=b"WRITE_UID\n" + data + b"\n", recv_start_with="O")
 
     def unbrick_card(self, data: bytes):
         assert len(data) == 4
-        self.__communicate(command=b"UNBRICK\n" + data + b"\n", recv_should_be="O")
+        self.__communicate(command=b"UNBRICK\n" + data + b"\n", recv_start_with="O")
 
 
 class CardMock(Card):
