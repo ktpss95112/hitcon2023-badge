@@ -15,7 +15,7 @@ class ChameleonStation:
     def __init__(self) -> None:
         self.root = root = Tk()
         root.title("Chameleon Station of Badge Mini Games")
-        root.geometry("1200x800")
+        root.geometry("1400x900")
 
         self.ui_settings_frame = frames.UISettingsFrame(root)
         self.ui_settings_frame["padding"] = 5
