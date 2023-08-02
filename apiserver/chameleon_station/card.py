@@ -1,5 +1,6 @@
 import abc
 import random
+from collections import defaultdict
 
 import serial as pyserial
 
@@ -22,6 +23,36 @@ class Card(abc.ABC):
     @abc.abstractmethod
     def unbrick_card(self, data: bytes):
         pass
+
+    def clear_emoji_buffer(self, data: bytes):
+        """
+        data: all the data on the card
+        """
+        assert len(data) == config.NUM_SECTOR * config.NUM_BLOCK * config.BLOCK_SIZE
+        block_to_write = defaultdict(set)
+        num_chunk = config.BLOCK_SIZE // config.DISPLAY_CHUNK
+
+        # collect/merge the blocks
+        block_to_write[config.EMOJI_SIZE_CHUNK[:2]].add(config.EMOJI_SIZE_CHUNK[2])
+        for i_sector, i_block, i_chunk in config.EMOJI_CHUNKS:
+            block_to_write[(i_sector, i_block)].add(i_chunk)
+
+        # erase while persisting the data which should not be erased
+        for (i_sector, i_block), (chunks) in block_to_write.items():
+            data_to_write = [b"" for _ in range(num_chunk)]
+            for i_chunk in range(num_chunk):
+                start = (
+                    i_sector * config.NUM_BLOCK + i_block
+                ) * config.BLOCK_SIZE + i_chunk * config.DISPLAY_CHUNK
+                end = start + config.DISPLAY_CHUNK
+                chunk_data = data[start:end]
+
+                if i_chunk in chunks:
+                    data_to_write[i_chunk] = b"\x00" * config.DISPLAY_CHUNK
+                else:
+                    data_to_write[i_chunk] = chunk_data
+
+            self.write_block(b"".join(data_to_write), i_sector, i_block)
 
 
 class CardArduino(Card):
@@ -77,6 +108,14 @@ class CardArduino(Card):
         assert len(data) == 4
         self.__communicate(command=b"UNBRICK\n" + data + b"\n", recv_start_with="O")
 
+    def read_all(self) -> bytes:
+        ret = b""
+        for i_sector in range(config.NUM_SECTOR):
+            for i_block in range(config.NUM_BLOCK):
+                index = i_sector * config.NUM_BLOCK + i_block
+                ret += self.read_block(index)
+        return ret
+
 
 class CardMock(Card):
     def __init__(self) -> None:
@@ -108,4 +147,5 @@ try:
     serial = pyserial.Serial(config.SERIAL_PORT, config.SERIAL_BAUDRATE)
     card: Card = CardArduino(serial)
 except:
+    # TODO: a mock serial instead of a mock card, so that we can test whether CardArduino works correctly
     card: Card = CardMock()

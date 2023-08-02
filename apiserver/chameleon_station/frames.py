@@ -71,6 +71,12 @@ class CommandFrame(ttk.LabelFrame):
         self.__show_qrcode_button.grid(column=1, row=0)
         self.__disable_qrcode_button()
 
+        self.__clear_emoji_button = ttk.Button(self)
+        self.__clear_emoji_button["text"] = "Clear Emoji Buffer"
+        self.__clear_emoji_button["command"] = self._command_clear_emoji_buffer
+        self.__clear_emoji_button.grid(column=2, row=0)
+        self.__disable_emoji_button()
+
         self.__scan_card_callback: list[Callable] = []
 
     def __enable_qrcode_button(self):
@@ -78,6 +84,12 @@ class CommandFrame(ttk.LabelFrame):
 
     def __disable_qrcode_button(self):
         self.__show_qrcode_button.state(["disabled"])
+
+    def __enable_emoji_button(self):
+        self.__clear_emoji_button.state(["!disabled"])
+
+    def __disable_emoji_button(self):
+        self.__clear_emoji_button.state(["disabled"])
 
     def _set_scan_card_callback(self, callback: Callable):
         self.__scan_card_callback.append(callback)
@@ -96,8 +108,10 @@ class CommandFrame(ttk.LabelFrame):
 
         if success:
             self.__enable_qrcode_button()
+            self.__enable_emoji_button()
         else:
             self.__disable_qrcode_button()
+            self.__disable_emoji_button()
 
     def _command_show_qrcode(self):
         popup_window = Toplevel(self)
@@ -113,6 +127,10 @@ class CommandFrame(ttk.LabelFrame):
         canvas["width"] = canvas["height"] = config.QRCODE_SIZE
         canvas.grid()
         canvas.create_image(0, 0, image=self.qrcode_img, anchor=NW)
+
+    def _command_clear_emoji_buffer(self):
+        card.clear_emoji_buffer(self.data)
+        self._command_scan_card()
 
 
 class EditorFrame(ttk.Frame):
@@ -485,28 +503,11 @@ class _GameEmojiInspectorFrame(ttk.LabelFrame):
         self["text"] = "Emoji Game Inspector"
         self.__hex_view_frame = hex_view_frame
 
-        # TODO: better way to configure this in config.py?
         self.__emoji_tags = [
             ChunkTag(i_sector, i_block, i_chunk)
-            for i_sector, i_block in (
-                (0, 1),
-                (0, 2),
-                (1, 0),
-                (1, 1),
-                (1, 2),
-                (2, 0),
-                (2, 1),
-                (2, 2),
-                (3, 0),
-                (3, 1),
-                (3, 2),
-                (4, 0),
-                (4, 1),
-                (4, 2),
-            )
-            for i_chunk in range(4)
+            for i_sector, i_block, i_chunk in config.EMOJI_CHUNKS
         ]
-        self.__emoji_size_tag = ChunkTag(4, 2, 3)
+        self.__emoji_size_tag = ChunkTag(*config.EMOJI_SIZE_CHUNK)
         self.__tag_name_content = "emoji content highlight"
         self.__tag_name_size = "emoji size highlight"
 
