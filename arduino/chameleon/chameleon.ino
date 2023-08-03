@@ -8,7 +8,6 @@ void setup() {
 
 void reset() {
 	card::done();
-	while (!card::legal_new_card());
 	serial::init();
 }
 
@@ -29,6 +28,11 @@ void read_block(int blkid) {
 
 	if (!valid_block(blkid)) {
 		serial::error(bad_id + blkid);
+		return;
+	}
+
+	if (!card::reset()) {
+		serial::error(no_card);
 		return;
 	}
 
@@ -55,6 +59,11 @@ void write_block(int blkid) {
 		return;
 	}
 
+	if (!card::reset()) {
+		serial::error(no_card);
+		return;
+	}
+
 	if (card::write_block(buf, blkid))
 		serial::accept();
 	else
@@ -62,12 +71,18 @@ void write_block(int blkid) {
 }
 
 void write_uid() {
+	static const String no_card = "card not found or invalid";
 	static const String serial_err = "error while reading from serial";
 	static const String card_err = "error while writing to card";
 	byte buf[card::UIDSIZE];
 
 	if (!serial::read(buf, sizeof(buf))) {
 		serial::error(serial_err);
+		return;
+	}
+
+	if (!card::reset()) {
+		serial::error(no_card);
 		return;
 	}
 
@@ -87,7 +102,6 @@ void loop() {
 		write_block(serial::read_int());
 	else if (command == "WRITE_UID")
 		write_uid();
-	else {
+	else
 		invalid_command(command);
-	}
 }

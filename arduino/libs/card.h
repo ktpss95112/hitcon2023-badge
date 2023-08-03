@@ -22,6 +22,7 @@ namespace card {
 	bool read_uid(byte *buf);
 	bool write_uid(byte *buf);
 	void done();
+	bool reset();
 }
 
 #endif
