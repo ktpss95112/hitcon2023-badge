@@ -1,28 +1,151 @@
 import abc
+import io
 import random
-from collections import defaultdict
+from collections import defaultdict, deque
 
 import serial as pyserial
 
 from .config import config
 
 
-class Card(abc.ABC):
+class SerialBase(abc.ABC):
     @abc.abstractmethod
-    def read_all(self) -> bytes:
+    def readline(self) -> bytes:
         pass
 
     @abc.abstractmethod
+    def read(self, size) -> bytes:
+        pass
+
+    @abc.abstractmethod
+    def write(self, buf) -> int:
+        pass
+
+
+class ArduinoSerialMock(SerialBase):
+    def __init__(self):
+        self.data = b""
+        self.output_buf = deque()
+
+    def write(self, buf: bytes) -> bytes:
+        input_buf = io.BytesIO(buf)
+        while True:
+            line = input_buf.readline()
+            if line == b"":
+                break
+
+            elif line == b"INIT\n":
+                self.data = random.randbytes(
+                    config.NUM_SECTOR * config.NUM_BLOCK * config.BLOCK_SIZE
+                )
+                self.output_buf.extend(b"I\n")
+
+            elif line == b"READ\n":
+                block_id = int(input_buf.readline())
+                start = block_id * config.BLOCK_SIZE
+                end = start + config.BLOCK_SIZE
+                data = self.data[start:end]
+                self.output_buf.extend(b"O" + data + b"\n")
+
+            elif line == b"WRITE\n":
+                block_id = int(input_buf.readline())
+                start = block_id * config.BLOCK_SIZE
+                end = start + config.BLOCK_SIZE
+                data = input_buf.read(config.BLOCK_SIZE + 1)[: config.BLOCK_SIZE]
+                self.data = self.data[:start] + data + self.data[end:]
+                self.output_buf.extend(b"O\n")
+
+            elif line == b"WRITE_UID\n":
+                new_uid = input_buf.read(5)[:4]
+                self.data = new_uid + self.data[4:]
+                self.output_buf.extend(b"O\n")
+
+            elif line == b"UNBRICK\n":
+                new_uid = input_buf.read(5)[:4]
+                self.data = new_uid + self.data[4:]
+                self.output_buf.extend(b"O\n")
+
+    def read(self, size) -> bytes:
+        ret = bytearray()
+        for _ in range(size):
+            try:
+                ret.append(self.output_buf.popleft())
+            except IndexError:
+                break
+        return bytes(ret)
+
+    def readline(self) -> bytes:
+        ret = bytearray()
+        while True:
+            try:
+                ret.append(self.output_buf.popleft())
+            except IndexError:
+                break
+            if ret[-1] == ord("\n"):
+                break
+        return bytes(ret)
+
+
+class CardArduino:
+    def __init__(self, serial: SerialBase):
+        self.serial = serial
+
+        self.__communicate(command=b"INIT\n", recv_start_with=b"I")
+
+    def __consume_trailing_newline(self):
+        self.serial.readline()
+
+    def __communicate(
+        self,
+        command: bytes,
+        recv_start_with: bytes,
+        recv_callback=__consume_trailing_newline,
+    ):
+        self.serial.write(command)
+        while True:
+            c = self.serial.read(1)
+            if c == b"E":
+                reason = self.serial.readline().strip()
+                raise Exception(reason)
+            elif c == b"D":
+                msg = self.serial.readline().strip()
+            elif c == recv_start_with:
+                return recv_callback(self)
+
+    def read_block(self, i_block: int) -> bytes:
+        def callback(*args):
+            content = self.serial.read(16)
+            self.serial.readline()
+            return content
+
+        return self.__communicate(
+            command=f"READ\n{i_block}\n".encode(),
+            recv_start_with=b"O",
+            recv_callback=callback,
+        )
+
     def write_block(self, data: bytes, i_sector: int, i_block: int):
-        pass
+        assert len(data) == config.BLOCK_SIZE
+        block_id = i_sector * config.NUM_BLOCK + i_block
+        self.__communicate(
+            command=f"WRITE\n{block_id}\n".encode() + data + b"\n", recv_start_with=b"O"
+        )
 
-    @abc.abstractmethod
     def write_uid(self, data: bytes):
-        pass
+        assert len(data) == 4
+        self.__communicate(command=b"WRITE_UID\n" + data + b"\n", recv_start_with=b"O")
 
-    @abc.abstractmethod
     def unbrick_card(self, data: bytes):
-        pass
+        assert len(data) == 4
+        self.__communicate(command=b"UNBRICK\n" + data + b"\n", recv_start_with=b"O")
+
+    def read_all(self) -> bytes:
+        ret = b""
+        for i_sector in range(config.NUM_SECTOR):
+            for i_block in range(config.NUM_BLOCK):
+                index = i_sector * config.NUM_BLOCK + i_block
+                ret += self.read_block(index)
+        return ret
 
     def clear_emoji_buffer(self, data: bytes):
         """
@@ -55,97 +178,9 @@ class Card(abc.ABC):
             self.write_block(b"".join(data_to_write), i_sector, i_block)
 
 
-class CardArduino(Card):
-    def __init__(self, serial: pyserial.Serial):
-        self.serial = serial
-
-        self.__communicate(command=b"INIT\n", recv_start_with=b"I")
-
-    def __consume_trailing_newline(self):
-        self.serial.readline()
-
-    def __communicate(
-        self,
-        command: bytes,
-        recv_start_with: bytes,
-        recv_callback=__consume_trailing_newline,
-    ):
-        self.serial.write(command)
-        while True:
-            c = self.serial.read(1)
-            if c == b"E":
-                reason = self.serial.readline().strip()
-                raise Exception(reason)
-            elif c == b"D":
-                msg = self.serial.readline().strip()
-            elif c == recv_start_with:
-                return recv_callback()
-
-    def read_block(self, i_block: int) -> bytes:
-        def callback():
-            content = self.serial.read(16)
-            self.serial.readline()
-            return content
-
-        return self.__communicate(
-            command=f"READ\n{i_block}\n".encode(),
-            recv_start_with="O",
-            recv_callback=callback,
-        )
-
-    def write_block(self, data: bytes, i_sector: int, i_block: int):
-        assert len(data) == config.BLOCK_SIZE
-        block_id = i_sector * config.NUM_BLOCK + i_block
-        self.__communicate(
-            command=f"WRITE\n{block_id}\n".encode() + data + b"\n", recv_start_with="O"
-        )
-
-    def write_uid(self, data: bytes):
-        assert len(data) == 4
-        self.__communicate(command=b"WRITE_UID\n" + data + b"\n", recv_start_with="O")
-
-    def unbrick_card(self, data: bytes):
-        assert len(data) == 4
-        self.__communicate(command=b"UNBRICK\n" + data + b"\n", recv_start_with="O")
-
-    def read_all(self) -> bytes:
-        ret = b""
-        for i_sector in range(config.NUM_SECTOR):
-            for i_block in range(config.NUM_BLOCK):
-                index = i_sector * config.NUM_BLOCK + i_block
-                ret += self.read_block(index)
-        return ret
-
-
-class CardMock(Card):
-    def __init__(self) -> None:
-        self.data = random.randbytes(
-            config.NUM_SECTOR * config.NUM_BLOCK * config.BLOCK_SIZE
-        )
-
-    def read_all(self) -> bytes:
-        data = self.data
-
-        assert len(data) == config.NUM_SECTOR * config.NUM_BLOCK * config.BLOCK_SIZE
-        return data
-
-    def write_block(self, data: bytes, i_sector: int, i_block: int):
-        assert len(data) == config.BLOCK_SIZE
-        start = (i_sector * config.NUM_BLOCK + i_block) * config.BLOCK_SIZE
-        end = start + config.BLOCK_SIZE
-        self.data = self.data[:start] + data + self.data[end:]
-
-    def write_uid(self, data: bytes):
-        assert len(data) == 4
-        self.data = data + self.data[4:]
-
-    def unbrick_card(self, data: bytes):
-        self.write_uid(data)
-
-
 try:
     serial = pyserial.Serial(config.SERIAL_PORT, config.SERIAL_BAUDRATE)
-    card: Card = CardArduino(serial)
 except:
-    # TODO: a mock serial instead of a mock card, so that we can test whether CardArduino works correctly
-    card: Card = CardMock()
+    serial = ArduinoSerialMock()
+
+card = CardArduino(serial)
