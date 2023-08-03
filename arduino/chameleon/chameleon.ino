@@ -4,7 +4,6 @@
 void setup() {
 	serial::setup();
 	card::setup();
-	String stuff = "stuff";
 }
 
 void reset() {
@@ -88,9 +87,6 @@ void loop() {
 		write_block(serial::read_int());
 	else if (command == "WRITE_UID")
 		write_uid();
-	else if (command == "UNBRICK") {
-
-	}
 	else {
 		invalid_command(command);
 	}
