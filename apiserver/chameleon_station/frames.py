@@ -103,7 +103,8 @@ class CommandFrame(ttk.LabelFrame):
             success = (
                 len(data) == config.NUM_SECTOR * config.NUM_BLOCK * config.BLOCK_SIZE
             )
-        except:
+        except Exception as e:
+            print(f"Warning: could not card.read_all() ({e})")
             data = b""
             success = False
 
