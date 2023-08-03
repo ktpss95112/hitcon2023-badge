@@ -69,49 +69,46 @@ class CommandFrame(ttk.LabelFrame):
         self.__show_qrcode_button["text"] = "Show QR Code"
         self.__show_qrcode_button["command"] = self._command_show_qrcode
         self.__show_qrcode_button.grid(column=1, row=0)
-        self.__disable_qrcode_button()
+        self.__show_qrcode_button.state(["disabled"])
 
         self.__clear_emoji_button = ttk.Button(self)
         self.__clear_emoji_button["text"] = "Clear Emoji Buffer"
         self.__clear_emoji_button["command"] = self._command_clear_emoji_buffer
         self.__clear_emoji_button.grid(column=2, row=0)
-        self.__disable_emoji_button()
-
-        self.__scan_card_callback: list[Callable] = []
-
-    def __enable_qrcode_button(self):
-        self.__show_qrcode_button.state(["!disabled"])
-
-    def __disable_qrcode_button(self):
-        self.__show_qrcode_button.state(["disabled"])
-
-    def __enable_emoji_button(self):
-        self.__clear_emoji_button.state(["!disabled"])
-
-    def __disable_emoji_button(self):
         self.__clear_emoji_button.state(["disabled"])
 
+        self.__scan_card_callback: list[Callable] = []
+        self._set_scan_card_callback(self.__change_button_state)
+
     def _set_scan_card_callback(self, callback: Callable):
+        """
+        callback() takes two positional arguments:
+        * data: bytes whose length should be the whole data. If len(data) is not full, the following argument is False.
+        * success: bool which indicates if the read is successful. If not successful, len(data) may not be full length.
+        """
         self.__scan_card_callback.append(callback)
+
+    def __change_button_state(self, data, success):
+        if success:
+            self.__show_qrcode_button.state(["!disabled"])
+            self.__clear_emoji_button.state(["!disabled"])
+        else:
+            self.__show_qrcode_button.state(["disabled"])
+            self.__clear_emoji_button.state(["disabled"])
 
     def _command_scan_card(self):
         # TODO: progress bar
         try:
             self.data = data = card.read_all()
-            success = True
+            success = (
+                len(data) == config.NUM_SECTOR * config.NUM_BLOCK * config.BLOCK_SIZE
+            )
         except:
-            data = b"\x00" * config.NUM_SECTOR * config.NUM_BLOCK * config.BLOCK_SIZE
+            data = b""
             success = False
 
         for callback in self.__scan_card_callback:
-            callback(data)
-
-        if success:
-            self.__enable_qrcode_button()
-            self.__enable_emoji_button()
-        else:
-            self.__disable_qrcode_button()
-            self.__disable_emoji_button()
+            callback(data, success)
 
     def _command_show_qrcode(self):
         popup_window = Toplevel(self)
@@ -218,16 +215,12 @@ class _EditorHexViewFrame(ttk.Frame):
         self.__inspect_data_setter = inspect_data_setter
 
     def _clear_content(self):
-        self._update_content(
-            b"\x00" * config.NUM_SECTOR * config.NUM_BLOCK * config.BLOCK_SIZE
-        )
+        self._update_content(b"", False)
 
-    def _update_content(self, data: bytes):
+    def _update_content(self, data: bytes, success: bool):
         # ensure that the length of data is correct
         len_ = config.NUM_SECTOR * config.NUM_BLOCK * config.BLOCK_SIZE
-        if len(data) < len_:
-            data = data.ljust(len_, b"\x00")
-        elif len(data) > len_:
+        if len(data) > len_:
             data = data[:len_]
 
         self.__text.delete("1.0", "end")
@@ -269,7 +262,14 @@ class _EditorHexViewFrame(ttk.Frame):
                     # content
                     chunk_tag = ChunkTag(i_sector, i_block, i_chunk)
                     self.__text.insert(
-                        END, " ".join([f"{byte:02x}" for byte in chunk]), (chunk_tag,)
+                        END,
+                        " ".join(
+                            [
+                                f"{chunk[i]:02x}" if i < len(chunk) else "--"
+                                for i in range(config.DISPLAY_CHUNK)
+                            ]
+                        ),
+                        (chunk_tag,),
                     )
                     self.__text.insert(
                         END, ("\n" if i_chunk == len(chunks) - 1 else "  ")
@@ -469,8 +469,9 @@ class _EditorInspectWriteCardFrame(ttk.LabelFrame):
             )
 
             card.write_block(data, sector, block)
-        except:
+        except Exception as e:
             # TODO: error handling (popup error message)
+            print(f"Warning: could not write card ({e})")
             return
 
         self.__scan_card_command()
@@ -493,8 +494,9 @@ class _GameInspectorFrame(ttk.Frame):
 
         command_frame._set_scan_card_callback(self._scan_card_callback)
 
-    def _scan_card_callback(self, data: bytes):
-        self.__emoji_inspector_frame._scan_card_callback(data)
+    def _scan_card_callback(self, data: bytes, success: bool):
+        if success:
+            self.__emoji_inspector_frame._scan_card_callback(data, success)
 
 
 class _GameEmojiInspectorFrame(ttk.LabelFrame):
@@ -578,9 +580,10 @@ Field: Content = {emoji_str}
             "\x00", ""
         )
 
-    def _scan_card_callback(self, data: bytes):
-        self.__setup_emoji_tags()
-        self.__update_emoji_label()
+    def _scan_card_callback(self, data: bytes, success: bool):
+        if success:
+            self.__setup_emoji_tags()
+            self.__update_emoji_label()
 
 
 # Just a utility class.
