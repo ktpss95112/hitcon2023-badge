@@ -77,6 +77,12 @@ namespace card {
 		return false;
 	}
 
+	bool read_block(byte *buf, int blockaddr) {
+		if (!auth_b(blockaddr))
+			return false;
+		return read_block(buf, blockaddr, 0, BLKSIZE);
+	}
+
 	/*
 	 * Same as `pread` in libc, but without `fildes`.
 	 */
@@ -126,6 +132,12 @@ namespace card {
 
 		status = mfrc522.MIFARE_Write(blockaddr, tmpbuf, sizeof(tmpbuf));
 		return status == MFRC522::STATUS_OK;
+	}
+
+	bool write_block(byte *buf, int blockaddr) {
+		if (!auth_b(blockaddr))
+			return false;
+		return write_block(buf, blockaddr, 0, BLKSIZE);
 	}
 
 	/*
