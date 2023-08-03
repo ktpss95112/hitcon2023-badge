@@ -306,6 +306,7 @@ class _EditorHexViewFrame(ttk.Frame):
                                         self.__inspect_data_setter(content)
 
                             else:
+                                # TODO: use a new tag named "hover" to highlight instead of use the chunk_tag
                                 bg_color = "" if type_ == "leave" else "yellow"
                                 self.__text.tag_configure(
                                     chunk_tag, background=bg_color
@@ -538,7 +539,7 @@ class _GameEmojiInspectorFrame(ttk.LabelFrame):
         start, end, *_ = self.__hex_view_frame._text.tag_ranges(self.__emoji_size_tag)
         self.__hex_view_frame._text.tag_add(self.__tag_name_size, start, end)
 
-        self.__hex_view_frame._text.tag_lower(self.__tag_name_size, belowThis=SEL)
+        self.__hex_view_frame._text.tag_lower(self.__tag_name_size)
         self.__hex_view_frame._text.tag_lower(
             self.__tag_name_content, belowThis=self.__tag_name_size
         )
