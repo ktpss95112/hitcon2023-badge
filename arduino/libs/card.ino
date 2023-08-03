@@ -13,16 +13,17 @@ namespace card {
 
 	bool legal_new_card() {
 		MFRC522::PICC_Type picc_type;
+
 		if (!mfrc522.PICC_IsNewCardPresent())
 			return false;
+
 		if (!mfrc522.PICC_ReadCardSerial())
 			return false;
 
 		picc_type = mfrc522.PICC_GetType(mfrc522.uid.sak);
-		if (picc_type != MFRC522::PICC_TYPE_MIFARE_MINI &&
-			picc_type != MFRC522::PICC_TYPE_MIFARE_1K &&
-			picc_type != MFRC522::PICC_TYPE_MIFARE_4K)
+		if (picc_type != MFRC522::PICC_TYPE_MIFARE_1K)
 			return false;
+
 		return true;
 	}
 
@@ -207,5 +208,14 @@ namespace card {
 	void done() {
 		mfrc522.PICC_HaltA();
 		mfrc522.PCD_StopCrypto1();
+	}
+
+	bool reset() {
+		byte bufferATQA[2];
+		byte buffer_size = sizeof(bufferATQA);
+
+		done();
+		mfrc522.PICC_WakeupA(bufferATQA, &buffer_size);
+		return mfrc522.PICC_ReadCardSerial();
 	}
 }
