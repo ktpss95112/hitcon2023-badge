@@ -9,21 +9,40 @@ namespace game {
         
     }
 
-    static int read_count() {
-        int cnt;
-        int res = card::pread((byte *)&cnt, sizeof(cnt), incr_off);
+    static int read_incr_1() {
+        int incr;
+        int res = card::pread((byte *)&incr, sizeof(incr), raw_incr_off);
 
-        if (res != sizeof(cnt)) {
+        if (res != sizeof(incr)) {
             Serial.println("Failed to read incr");
-            return 0;
+            return -1;
         }
 
-        return cnt;
+        return incr;
     }
 
-    static bool post_count(int cnt) {
-        byte uid[16];
+    static int read_incr_2() {
+        int incr;
+        int res = card::pread((byte *)&incr, sizeof(incr), xor_incr_off);
+
+        if (res != sizeof(incr)) {
+            Serial.println("Failed to read incr");
+            return -1;
+        }
+
+        return incr ^ 0xdeadbeef;
+    }
+
+    static int read_incr() {
+        return read_incr_2();
+    }
+
+    static bool post_incr(int incr, int *cd) {
+        byte uid[card::UIDSIZE];
         bool res = card::read_uid(uid);
+
+        *cd = -1;
+
         if (!res) {
             Serial.println(F("Failed to read the UID"));
             return false;
@@ -32,15 +51,37 @@ namespace game {
         String path = incr_path;
         path += "/user/";
         path += util::bytes_to_str(uid, sizeof(uid));
+        path += "?incr=";
+        path += incr;
 
-        DynamicJsonDocument doc(64);
-        doc["incr"] = cnt;
+        Serial.println("posting to:");
+        Serial.println(path);
 
-        return network::post_json(doc, path.c_str());
+        DynamicJsonDocument doc(256);
+
+        res = network::post_json(doc, path.c_str());
+        if (!res) {
+            Serial.println(F("Failed to post the data"));
+            return false;
+        }
+
+        *cd = doc[1];
+        return doc[0];
     }
 
     void process_card() {
-        int cnt = read_count();
-        post_count(cnt);
+        bool success;
+        int cd, incr = read_incr();
+
+        if (incr < 0)
+            return;
+
+        success = post_incr(incr, &cd);
+        if (success)
+            Serial.println("success");
+        else
+            Serial.println("fail");
+        Serial.printf("cooldown: %d", cd);
+        Serial.println();
     }
 }
