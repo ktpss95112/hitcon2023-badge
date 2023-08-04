@@ -37,7 +37,7 @@ void read_block(int blkid) {
 	}
 
 	if (card::read_block(buf, blkid))
-		serial::accept(buf, sizeof(buf));
+		serial::accept_with_data(buf, sizeof(buf));
 	else
 		serial::error(card_err);
 }

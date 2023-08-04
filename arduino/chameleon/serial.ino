@@ -3,7 +3,7 @@ namespace serial {
 		Serial.begin(9600);
 	}
 
-	byte read() {
+	static byte read_byte() {
 		while (!Serial.available());
 		return Serial.read();
 	}
@@ -13,20 +13,20 @@ namespace serial {
 		byte recv;
 
 		for (i = 0; i < len; ++i) {
-			recv = read();
+			recv = read_byte();
 			if (recv == -1)
 				return false;
 			dst[i] = recv;
 		}
 
-		return read() == '\n';
+		return read_byte() == '\n';
 	}
 
 	String readline() {
 		String res;
 		char recv;
 		do {
-			recv = read();
+			recv = read_byte();
 			if (recv == '\n')
 				break;
 			else
@@ -37,22 +37,6 @@ namespace serial {
 
 	void init() {
 		Serial.print("I\n");
-	}
-
-	void write(const String &data) {
-		Serial.print(data);
-	}
-
-	void write(const char *data) {
-		Serial.print(data);
-	}
-
-	void write(const char data) {
-		Serial.print(data);
-	}
-
-	void write(const byte *data, int len) {
-		Serial.write(data, len);
 	}
 
 	void debug(const String &msg) {
@@ -70,13 +54,7 @@ namespace serial {
 		Serial.print("O\n");
 	}
 
-	void accept(const String &msg) {
-		Serial.print('O');
-		Serial.print(msg);
-		Serial.print('\n');
-	}
-
-	void accept(const byte *data, int len) {
+	void accept_with_data(const byte *data, int len) {
 		Serial.print('O');
 		Serial.write(data, len);
 		Serial.write('\n');
