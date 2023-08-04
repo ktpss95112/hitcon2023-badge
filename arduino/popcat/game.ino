@@ -22,16 +22,16 @@ namespace game {
     }
 
     static bool post_count(int cnt) {
-        byte uuid[16];
-        bool res = card::read_uuid(uuid);
+        byte uid[16];
+        bool res = card::read_uid(uid);
         if (!res) {
-            Serial.println(F("Failed to read the UUID"));
+            Serial.println(F("Failed to read the UID"));
             return false;
         }
 
         String path = incr_path;
         path += "/user/";
-        path += util::bytes_to_str(uuid, sizeof(uuid));
+        path += util::bytes_to_str(uid, sizeof(uid));
 
         DynamicJsonDocument doc(64);
         doc["incr"] = cnt;
