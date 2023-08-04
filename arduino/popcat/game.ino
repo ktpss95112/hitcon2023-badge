@@ -9,32 +9,32 @@ namespace game {
         
     }
 
-    static int read_incr_1() {
-        int incr;
-        int res = card::pread((byte *)&incr, sizeof(incr), raw_incr_off);
+    static int get_cur_offset() {
+        return xor_incr_off;
+    }
 
-        if (res != sizeof(incr)) {
-            Serial.println("Failed to read incr");
-            return -1;
-        }
-
+    static int decode_incr_1(int incr) {
         return incr;
     }
 
-    static int read_incr_2() {
-        int incr;
-        int res = card::pread((byte *)&incr, sizeof(incr), xor_incr_off);
-
-        if (res != sizeof(incr)) {
-            Serial.println("Failed to read incr");
-            return -1;
-        }
-
+    static int decode_incr_2(int incr) {
         return incr ^ 0xdeadbeef;
     }
 
-    static int read_incr() {
-        return read_incr_2();
+    static bool read_incr(int *incr, int offset) {
+        int res = card::pread((byte *)incr, sizeof(incr), offset);
+
+        if (res != sizeof(*incr)) {
+            Serial.println("Failed to read incr");
+            return false;
+        }
+
+        return true;
+    }
+
+    static int decode_incr(int incr) {
+        return decode_incr_1(incr);
+        // return decode_incr_2(incr);
     }
 
     static bool post_incr(int incr, int *cd) {
@@ -71,7 +71,12 @@ namespace game {
 
     void process_card() {
         bool success;
-        int cd, incr = read_incr();
+        int cd, incr;
+        
+        if (!read_incr(&incr, get_cur_offset()))
+            return;
+
+        incr = decode_incr(incr);
 
         if (incr < 0)
             return;
