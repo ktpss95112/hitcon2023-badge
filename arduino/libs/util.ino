@@ -1,9 +1,9 @@
 namespace util {
 	static inline char hex_to_char(int hex) {
 		if (hex >= 10)
-			return hex - 10 + 0x61;
+			return hex - 10 + 'a';
 		else
-			return hex + 0x30;
+			return hex + '0';
 	}
 
 	String bytes_to_str(byte *bytes, int size) {

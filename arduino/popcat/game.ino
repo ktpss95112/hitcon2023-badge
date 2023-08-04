@@ -23,6 +23,7 @@ namespace game {
         return true;
     }
 
+    // TODO: change the name (and implementation) of these two functions
     static int decode_incr_1(int incr) {
         return incr;
     }
