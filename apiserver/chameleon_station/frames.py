@@ -97,15 +97,23 @@ class CommandFrame(ttk.LabelFrame):
             self.__clear_emoji_button.state(["disabled"])
 
     def _command_scan_card(self):
-        # TODO: progress bar
+        progress_window = ProgressWindow(self)
+        self.update()
+
         try:
             self.data = data = card.read_all()
             success = (
                 len(data) == config.NUM_SECTOR * config.NUM_BLOCK * config.BLOCK_SIZE
             )
+
+            if success:
+                progress_window._close()
+            else:
+                progress_window._set_text("Failed to read card!")
+
         except Exception as e:
-            print(f"Warning: could not card.read_all() ({e})")
-            data = b""
+            progress_window._set_text(f"Could not read card!\nReason: {e}")
+            data = e.partial_data if hasattr(e, "partial_data") else b""
             success = False
 
         for callback in self.__scan_card_callback:
@@ -129,6 +137,30 @@ class CommandFrame(ttk.LabelFrame):
     def _command_clear_emoji_buffer(self):
         card.clear_emoji_buffer(self.data)
         self._command_scan_card()
+
+
+class ProgressWindow(Toplevel):
+    def __init__(self, parent: Misc) -> None:
+        super().__init__(parent)
+        dx = (config.WINDOW_WIDTH - config.PROGRESS_WINDOW_WIDTH) // 2
+        dy = (config.WINDOW_HEIGHT - config.PROGRESS_WINDOW_HEIGHT) // 2
+        self.geometry(
+            f"{config.PROGRESS_WINDOW_WIDTH}x{config.PROGRESS_WINDOW_HEIGHT}+{dx}+{dy}"
+        )
+
+        self.__label = ttk.Label(self)
+        self.__label["text"] = "Please wait ..."
+        self.__label.grid(column=0, row=0)
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+
+        # TODO: interactive progress bar
+
+    def _set_text(self, content: str):
+        self.__label["text"] = content
+
+    def _close(self):
+        self.destroy()
 
 
 class EditorFrame(ttk.Frame):

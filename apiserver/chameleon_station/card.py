@@ -140,11 +140,17 @@ class CardArduino:
         self.__communicate(command=b"UNBRICK\n" + data + b"\n", recv_start_with=b"O")
 
     def read_all(self) -> bytes:
-        ret = b""
-        for i_sector in range(config.NUM_SECTOR):
-            for i_block in range(config.NUM_BLOCK):
-                index = i_sector * config.NUM_BLOCK + i_block
-                ret += self.read_block(index)
+        try:
+            ret = b""
+            for i_sector in range(config.NUM_SECTOR):
+                for i_block in range(config.NUM_BLOCK):
+                    index = i_sector * config.NUM_BLOCK + i_block
+                    ret += self.read_block(index)
+
+        except Exception as e:
+            e.partial_data = ret
+            raise e
+
         return ret
 
     def clear_emoji_buffer(self, data: bytes):
