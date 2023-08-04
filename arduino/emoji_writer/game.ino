@@ -8,16 +8,11 @@
 #include "util.h"
 
 namespace game {
-	static time_t str_to_epoch(const char *str) {
-		tm datetime {0};
-		strptime(str, "\"%FT%T.", &datetime);
-		return mktime(&datetime);
-	}
-
 	static void push_one_emoji(const JsonVariant &doc) {
 		const char *starttime_str = doc[0];
 		const char *emoji_str = doc[1];
-		time_t starttime = str_to_epoch(starttime_str);
+
+		time_t starttime = util::str_to_epoch(starttime_str, "%FT%T");
 		std::shared_ptr<emoji_timetable> cur(new emoji_timetable(
 			starttime, emoji_str, emoji_timetable_head
 		));
@@ -56,10 +51,7 @@ namespace game {
 	}
 
 	static bool sync_clock() {
-		String datetime_str = network::get_string(current_time_path);
-		if (datetime_str.length() == 0)
-			return false;
-		time_t now = str_to_epoch(datetime_str.c_str());
+		time_t now = network::fetch_time();
 		Serial.printf("now: %lld", now);
 		Serial.println();
 		clock_offset = now - seconds_from_boot();

@@ -19,4 +19,10 @@ namespace util {
 
 		return res;
 	}
+
+	time_t str_to_epoch(const char *str, const char *fmt) {
+		tm datetime {0};
+		strptime(str, fmt, &datetime);
+		return mktime(&datetime);
+	}
 }

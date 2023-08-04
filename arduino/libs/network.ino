@@ -84,4 +84,11 @@ namespace network {
 		Serial.println("deserialization success");
 		return status_code == 200;
 	}
+
+	time_t fetch_time() {
+		String datetime_str = get_string(current_time_path);
+		if (datetime_str.length() == 0)
+			return false;
+		return util::str_to_epoch(datetime_str.c_str(), "\"%FT%T");
+	}
 }
