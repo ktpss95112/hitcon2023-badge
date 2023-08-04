@@ -142,8 +142,14 @@ class CommandFrame(ttk.LabelFrame):
 class ProgressWindow(Toplevel):
     def __init__(self, parent: Misc) -> None:
         super().__init__(parent)
-        dx = (config.WINDOW_WIDTH - config.PROGRESS_WINDOW_WIDTH) // 2
-        dy = (config.WINDOW_HEIGHT - config.PROGRESS_WINDOW_HEIGHT) // 2
+        dx = (
+            parent.winfo_toplevel().winfo_x()
+            + (config.WINDOW_WIDTH - config.PROGRESS_WINDOW_WIDTH) // 2
+        )
+        dy = (
+            parent.winfo_toplevel().winfo_y()
+            + (config.WINDOW_HEIGHT - config.PROGRESS_WINDOW_HEIGHT) // 2
+        )
         self.geometry(
             f"{config.PROGRESS_WINDOW_WIDTH}x{config.PROGRESS_WINDOW_HEIGHT}+{dx}+{dy}"
         )
