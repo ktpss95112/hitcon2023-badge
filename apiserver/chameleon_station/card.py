@@ -105,10 +105,10 @@ class CardArduino:
         while True:
             c = self.serial.read(1)
             if c == b"E":
-                reason = self.serial.readline().strip()
+                reason = self.serial.readline().rstrip()
                 raise Exception(reason)
             elif c == b"D":
-                msg = self.serial.readline().strip()
+                msg = self.serial.readline().rstrip()
             elif c == recv_start_with:
                 return recv_callback(self)
 
