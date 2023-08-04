@@ -22,7 +22,10 @@ namespace network {
 	const BearSSL::X509List client_cert(client_cert_str);
 	const BearSSL::PrivateKey client_key(client_key_str);
 
+	const char *current_time_path = "/time";
+
 	void setup();
+	time_t fetch_time();
 	String get_string(const char *path);
 	bool get_json(DynamicJsonDocument &doc, const char *path);
 	bool post_json(DynamicJsonDocument &doc, const char *path);

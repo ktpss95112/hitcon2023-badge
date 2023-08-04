@@ -6,11 +6,21 @@
 
 namespace game {
     void setup() {
-        
+        if (network::fetch_time() <= DAY2_EPOCH)
+            TODAY = 1;
+        else
+            TODAY = 2;
     }
 
-    static int get_cur_offset() {
-        return xor_incr_off;
+    static bool read_incr(int *incr) {
+        int res = card::pread((byte *)incr, sizeof(incr), incr_off[TODAY]);
+
+        if (res != sizeof(*incr)) {
+            Serial.println("Failed to read incr");
+            return false;
+        }
+
+        return true;
     }
 
     static int decode_incr_1(int incr) {
@@ -21,21 +31,7 @@ namespace game {
         return incr ^ 0xdeadbeef;
     }
 
-    static bool read_incr(int *incr, int offset) {
-        int res = card::pread((byte *)incr, sizeof(incr), offset);
-
-        if (res != sizeof(*incr)) {
-            Serial.println("Failed to read incr");
-            return false;
-        }
-
-        return true;
-    }
-
-    static int decode_incr(int incr) {
-        return decode_incr_1(incr);
-        // return decode_incr_2(incr);
-    }
+    int (*decode_incr[])(int) = {decode_incr_1, decode_incr_2};
 
     static bool post_incr(int incr, int *cd) {
         byte uid[card::UIDSIZE];
@@ -73,19 +69,17 @@ namespace game {
         bool success;
         int cd, incr;
         
-        if (!read_incr(&incr, get_cur_offset()))
+        if (!read_incr(&incr))
             return;
 
-        incr = decode_incr(incr);
-
-        if (incr < 0)
-            return;
+        incr = decode_incr[TODAY](incr);
 
         success = post_incr(incr, &cd);
         if (success)
             Serial.println("success");
         else
             Serial.println("fail");
+
         Serial.printf("cooldown: %d", cd);
         Serial.println();
     }
