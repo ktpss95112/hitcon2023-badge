@@ -8,3 +8,5 @@
 #define GAME_CLIENT_CERT "-----BEGIN CERTIFICATE-----\n...-----END CERTIFICATE-----\n"
 #define GAME_CLIENT_KEY "-----BEGIN PRIVATE KEY-----\n...-----END PRIVATE KEY-----\n"
 #define GAME_READER_ID "ID"
+
+#define GAME_HMAC_KEY {0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbe}
