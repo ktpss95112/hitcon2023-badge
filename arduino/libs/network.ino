@@ -67,10 +67,21 @@ namespace network {
 		https.begin(wifi_client, host, host_port, path);
 
 		status_code = https.POST(payload);
+		payload = https.getString();
 		Serial.printf("status code %d", status_code);
 		Serial.println();
 		Serial.println("content:");
-		Serial.println(https.getString());
+		Serial.println(payload);
+
+		json_error = deserializeJson(doc, payload);
+		if (json_error) {
+			Serial.printf(
+				"can't deserialize JSON: %s",
+				json_error.f_str()
+			);
+			return false;
+		}
+		Serial.println("deserialization success");
 		return status_code == 200;
 	}
 }

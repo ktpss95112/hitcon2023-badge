@@ -1,7 +1,7 @@
 namespace util {
 	static inline char hex_to_char(int hex) {
 		if (hex >= 10)
-			return hex - 10 + 0x41;
+			return hex - 10 + 0x61;
 		else
 			return hex + 0x30;
 	}
