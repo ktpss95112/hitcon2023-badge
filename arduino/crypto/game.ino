@@ -2,7 +2,6 @@
 #include "util.h"
 #include "card.h"
 #include "hmac256.h"
-#include "lcd.h"
 #include "config.h"
 
 namespace game {
@@ -90,30 +89,22 @@ namespace game {
 
 		if (card::pread((byte *)&data, sizeof(data), data_off) != sizeof(data)) {
 			Serial.println("Failed reading the data from card");
-			lcd::clear();
-			lcd::print_multi("read data fail\ntry again", LCD_DELAY);
 			return;
 		}
 
 		if (card::pread(hmac, sizeof(hmac), hmac_off) != sizeof(hmac)) {
 			Serial.println("Failed reading the hmac from card");
-			lcd::clear();
-			lcd::print_multi("read hmac fail\ntry again", LCD_DELAY);
 			return;
 		}
 
 		if (!card::read_uid(uid)) {
 			Serial.println("Failed reading the UID from card");
-			lcd::clear();
-			lcd::print_multi("read uid fail\ntry again", LCD_DELAY);
 			return;
 		}
 
 #ifndef RESET
 		if (!hmac256::verify_hmac((byte *)&data, sizeof(data), uid, hmac)) {
 			Serial.println("HMAC verification failed");
-			lcd::clear();
-			lcd::print_multi("invalid HMAC\ncontact staff", LCD_DELAY);
 			return;
 		}
 #endif
@@ -123,22 +114,16 @@ namespace game {
 
 		if (card::pwrite((byte *)&data, sizeof(data), data_off) != sizeof(data)) {
 			Serial.println("Failed writing the data to card");
-			lcd::clear();
-			lcd::print_multi("write data fail\ncontact staff", LCD_DELAY);
 			return;
 		}
 
 		if (card::pwrite(hmac, sizeof(hmac), hmac_off) != sizeof(hmac)) {
 			Serial.println("Failed writing the HMAC to card");
-			lcd::clear();
-			lcd::print_multi("write HMAC fail\ncontact staff", LCD_DELAY);
 			return;
 		}
 
 		succ_msg = "updated data:\n";
 		succ_msg += String(data, HEX);
-		lcd::clear();
-		lcd::print_multi(succ_msg, LCD_DELAY);
 		Serial.printf("data is now %x", data);
 		Serial.println();
 	}
