@@ -28,7 +28,9 @@ namespace lcd {
 	bool print(int row, const String &msg, int duration);
 	bool print(int row, const char *msg, int duration);
 	bool print_multi(const char *msg);
+	bool print_multi(const String &msg);
 	bool print_multi(const char *msg, int duration);
+	bool print_multi(const String &msg, int duration);
 	bool clear();
 	bool clear(int row);
 	bool write(int chr);
