@@ -12,7 +12,16 @@ from pydantic import BaseModel
 from pymongo import MongoClient
 
 from .config import config
-from .model import CardReader, DinorunRecord, EmojiRecord, PopcatRecord, TapRecord, User
+from .model import (
+    ActivityDate,
+    CardReader,
+    CryptoRedeemRecord,
+    DinorunRecord,
+    EmojiRecord,
+    PopcatRecord,
+    TapRecord,
+    User,
+)
 
 
 class DB(abc.ABC):
@@ -116,6 +125,20 @@ class DB(abc.ABC):
     async def get_all_emoji(self) -> list[EmojiRecord]:
         pass
 
+    @abc.abstractmethod
+    async def new_crypto_redeem(self, record: CryptoRedeemRecord):
+        pass
+
+    @abc.abstractmethod
+    async def get_crypto_redeem_by_user_and_date(
+        self, user: User, date: ActivityDate
+    ) -> CryptoRedeemRecord | None:
+        pass
+
+    @abc.abstractmethod
+    async def get_all_crypto_redeem(self) -> list[CryptoRedeemRecord]:
+        pass
+
 
 class MongoDB(DB):
     def __init__(self, client: MongoClient) -> None:
@@ -130,6 +153,7 @@ class MongoDB(DB):
             config.MONGODB_DINORUN_RECORD_TABLE_NAME
         ]
         self.__emoji_record_table = self.__db[config.MONGODB_EMOJI_RECORD_TABLE_NAME]
+        self.__crypto_redeem_table = self.__db[config.MONGODB_CRYPTO_REDEEM_TABLE_NAME]
 
         self.__all_collections = [
             self.__user_table,
@@ -138,6 +162,7 @@ class MongoDB(DB):
             self.__popcat_record_table,
             self.__dinorun_record_table,
             self.__emoji_record_table,
+            self.__crypto_redeem_table,
         ]
 
     async def drop_all(self):
@@ -270,6 +295,24 @@ class MongoDB(DB):
             map(
                 EmojiRecord.parse_obj,
                 self.__emoji_record_table.find(),
+            )
+        )
+
+    async def new_crypto_redeem(self, record: CryptoRedeemRecord):
+        self.__crypto_redeem_table.insert_one(dict(record))
+
+    async def get_crypto_redeem_by_user_and_date(
+        self, user: User, date: ActivityDate
+    ) -> CryptoRedeemRecord | None:
+        return self.__crypto_redeem_table.find_one(
+            {"card_uid": user.card_uid, "date": date}
+        )
+
+    async def get_all_crypto_redeem(self) -> list[CryptoRedeemRecord]:
+        return list(
+            map(
+                CryptoRedeemRecord.parse_obj,
+                self.__crypto_redeem_table.find(),
             )
         )
 
