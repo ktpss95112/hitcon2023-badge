@@ -10,68 +10,66 @@ namespace game {
 		randomSeed(RANDOM_SEED);
 	}
 
-#ifdef SPONSOR1
+#ifdef DEVCORE
 	static uint32_t update_data(uint32_t src) {
-		uint8_t x[4];
-		x[0] = src & 0xFF;
-		x[1] = (src >> 8) & 0xFF;
-		x[2] = (src >> 16) & 0xFF;
-		x[3] = (src >> 24) & 0xFF;
-
-		static const uint8_t mat[4][4] {
-			{137, 172, 56, 176},
-			{171, 119, 211, 146},
-			{183, 240, 17, 44},
-			{119, 8, 55, 237}
-		};
-		uint8_t res[4];
-		for (int i = 0; i < 4; i++) {
-			uint32_t accu = 0;
-			for (int j = 0; j < 4; j++) {
-				accu += ((uint32_t)mat[i][j])*((uint32_t)x[j]);
-			}
-			res[i] = accu & 0xFF;
-		}
-
-		return res[0] | (res[1] << 8) | (res[2] << 16) | (res[3] << 24);
+		return src ^ 1146504018;
 	}
-#elif defined SPONSOR2
+#elif defined CYCRAFT
 	static uint32_t update_data(uint32_t src) {
-		return ((uint64_t)src) * 3300963383 % 3398445031;
+		return src ^ 1129465428;
 	}
-#elif defined SPONSOR3
-	static uint32_t pow(uint32_t x, uint32_t n) {
-		if (n == 0)
-			return 1;
-		uint32_t p = pow(x, n / 2);
-		if (n % 2)
-			return x * p * p;
-		else
-			return p * p;
-	}
+#elif defined FOXCONN
 	static uint32_t update_data(uint32_t src) {
-		return (x != 0) ? pow(x, x) : 0;
+		return src ^ 842215735;
 	}
-#elif defined WILD1
+#elif defined ISIP
+	static uint32_t update_data(uint32_t src) {
+		return src ^ 1230195024;
+	}
+#elif defined KLICKLACK
+	static uint32_t update_data(uint32_t src) {
+		return src ^ 1263223631;
+	}
+#elif defined CHT_SEC
+	static uint32_t update_data(uint32_t src) {
+		return src ^ 1128813651;
+	}
+#elif defined TRAPA
+	static uint32_t update_data(uint32_t src) {
+		return src ^ 1414680641;
+	}
+#elif defined RAKUTEN
+	static uint32_t update_data(uint32_t src) {
+		return src ^ 1380668494;
+	}
+#elif defined KKCOMPANY
+	static uint32_t update_data(uint32_t src) {
+		return src ^ 1262636888;
+	}
+#elif defined OFFSEC
+	static uint32_t update_data(uint32_t src) {
+		return src ^ 1330008899;
+	}
+#elif defined RESET
 	static uint32_t update_data(uint32_t src) {
 		return 0;
 	}
-#elif defined WILD2
+#elif defined ADD1
 	static uint32_t update_data(uint32_t src) {
 		return src + 1;
 	}
-#elif defined WILD3
+#elif defined ROR
 	static uint32_t update_data(uint32_t src) {
 		uint32_t r = src & 0b11111;
 		uint32_t mask_r = (0xffffffff >> r) << r;
 		uint32_t mask_another = ~mask_r;
 		return ((src & mask_r) >> r) | ((src & mask_another) << (32-r));
 	}
-#elif defined WILD4
+#elif defined SWAP_HILO
 	static uint32_t update_data(uint32_t src) {
 		return ((src & 0xffff0000) >> 16) | ((src & 0xffff) << 16);
 	}
-#elif defined WILD5
+#elif defined RAND_FLIP
 	static uint32_t update_data(uint32_t src) {
 		int bit1 = random(0, 32);
 		int bit2 = random(0, 31);
