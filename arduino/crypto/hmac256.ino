@@ -1,5 +1,6 @@
 #include <SHA256.h>
 #include "hmac256.h"
+#include "card.h"
 
 namespace hmac256 {
 	static bool arr_eq(const byte *a, const byte *b, int len) {
@@ -10,15 +11,16 @@ namespace hmac256 {
 
 		return true;
 	}
-	bool verify_hmac(byte *data, int len, byte *expected) {
+	bool verify_hmac(byte *data, int len, byte *uid, byte *expected) {
 		byte hmac[HMACSIZE];
-		gen_hmac(data, len, hmac);
+		gen_hmac(data, len, uid, hmac);
 		return arr_eq(hmac, expected, HMACSIZE);
 	}
 
-	void gen_hmac(byte *data, int len, byte *dest) {
+	void gen_hmac(byte *data, int len, byte *uid, byte *dest) {
 		SHA256 hash;
 		hash.resetHMAC(hmac_key, sizeof(hmac_key));
+		hash.update(uid, card::UIDSIZE);
 		hash.update(data, len);
 		hash.finalizeHMAC(hmac_key, sizeof(hmac_key), dest, HMACSIZE);
 	}
