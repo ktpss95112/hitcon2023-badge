@@ -172,14 +172,8 @@ namespace card {
 	}
 
 	bool read_uid(byte *buf) {
-		byte block0[BLKSIZE];
-		bool res = auth_b(0);
-		if (!res)
-			return false;
-		res = read_block(block0, 0, 0, BLKSIZE);
-		if (res)
-			memcpy(buf, block0, UIDSIZE);
-		return res;
+		memcpy(buf, &mfrc522.uid.uidByte, UIDSIZE);
+		return true;
 	}
 
 	bool write_uid(byte *uid) {
