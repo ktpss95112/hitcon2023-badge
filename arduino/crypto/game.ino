@@ -109,12 +109,14 @@ namespace game {
 			return;
 		}
 
+#ifndef RESET
 		if (!hmac256::verify_hmac((byte *)&data, sizeof(data), uid, hmac)) {
 			Serial.println("HMAC verification failed");
 			lcd::clear();
 			lcd::print_multi("invalid HMAC\ncontact staff", LCD_DELAY);
 			return;
 		}
+#endif
 
 		data = update_data(data);
 		hmac256::gen_hmac((byte *)&data, sizeof(data), uid, hmac);
