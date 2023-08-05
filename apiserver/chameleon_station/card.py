@@ -1,6 +1,7 @@
 import abc
 import io
 import random
+import sys
 from collections import defaultdict, deque
 
 import serial as pyserial
@@ -126,6 +127,9 @@ class CardArduino:
 
     def write_block(self, data: bytes, i_sector: int, i_block: int):
         assert len(data) == config.BLOCK_SIZE
+        assert not (
+            i_sector == 0 and i_block == 0
+        ), "You are not supposed to write block 0. Use write_uid instead."
         block_id = i_sector * config.NUM_BLOCK + i_block
         self.__communicate(
             command=f"WRITE\n{block_id}\n".encode() + data + b"\n", recv_start_with=b"O"
@@ -186,7 +190,9 @@ class CardArduino:
 
 try:
     serial = pyserial.Serial(config.SERIAL_PORT, config.SERIAL_BAUDRATE)
-except:
+except Exception as e:
+    print(e, file=sys.stderr)
+    print("Using mock serial ...", file=sys.stderr)
     serial = ArduinoSerialMock()
 
 card = CardArduino(serial)
