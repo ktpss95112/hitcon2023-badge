@@ -92,6 +92,13 @@ void write_uid() {
 		serial::error(card_err);
 }
 
+void read_uid() {
+	byte buf[card::UIDSIZE];
+
+	card::read_uid(buf);
+	serial::accept_with_data(buf, sizeof(buf));
+}
+
 void loop() {
 	String command = serial::readline();
 	if (command == "INIT")
@@ -100,6 +107,8 @@ void loop() {
 		read_block(serial::read_int());
 	else if (command == "WRITE")
 		write_block(serial::read_int());
+	else if (command == "READ_UID")
+		read_uid();
 	else if (command == "WRITE_UID")
 		write_uid();
 	else
