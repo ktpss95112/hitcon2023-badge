@@ -6,6 +6,7 @@ void setup() {
 	Serial.begin(9600);
 	lcd::setup();
 	card::setup();
+	game::setup();
 }
 
 void loop() {

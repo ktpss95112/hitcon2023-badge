@@ -7,6 +7,7 @@ namespace game {
 	const int data_off = 272;
 	const int hmac_off = data_off + card::BLKSIZE;
 
+	void setup();
 	void process_card();
 }
 

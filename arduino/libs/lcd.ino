@@ -98,12 +98,20 @@ namespace lcd {
 		return true;
 	}
 
+	bool print_multi(const String &msg) {
+		return print_multi(msg.c_str());
+	}
+
 	bool print_multi(const char *msg, int duration) {
 		if (!print_multi(msg))
 			return false;
 		delay(duration);
 		clear();
 		return true;
+	}
+
+	bool print_multi(const String &msg, int duration) {
+		return print_multi(msg.c_str(), duration);
 	}
 
 	bool clear(int row) {
