@@ -10,6 +10,7 @@ namespace game {
 
 	void process_card() {
 		byte hmac[hmac256::HMACSIZE];
+		byte uid[card::UIDSIZE];
 		int data;
 
 		if (card::pread((byte *)&data, sizeof(data), data_off) != sizeof(data)) {
@@ -22,13 +23,18 @@ namespace game {
 			return;
 		}
 
-		if (!hmac256::verify_hmac((byte *)&data, sizeof(data), hmac)) {
+		if (!card::read_uid(uid)) {
+			Serial.println("Failed reading the UID from card");
+			return;
+		}
+
+		if (!hmac256::verify_hmac((byte *)&data, sizeof(data), uid, hmac)) {
 			Serial.println("HMAC verification failed");
 			return;
 		}
 
 		data = update_data(data);
-		hmac256::gen_hmac((byte *)&data, sizeof(data), hmac);
+		hmac256::gen_hmac((byte *)&data, sizeof(data), uid, hmac);
 
 		if (card::pwrite((byte *)&data, sizeof(data), data_off) != sizeof(data)) {
 			Serial.println("Failed writing the data to card");
