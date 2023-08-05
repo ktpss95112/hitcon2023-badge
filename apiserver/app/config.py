@@ -7,6 +7,8 @@ from dotenv import load_dotenv
 
 @dataclass
 class Config:
+    # Whenever create a new field, update .env.example file.
+
     MONGODB_HOST: str = "localhost:27017"
     MONGODB_USERNAME: str = "root"
     MONGODB_PASSWORD: str = "example"
@@ -17,6 +19,7 @@ class Config:
     MONGODB_POPCAT_RECORD_TABLE_NAME: str = "popcat-record"
     MONGODB_DINORUN_RECORD_TABLE_NAME: str = "dinorun-record"
     MONGODB_EMOJI_RECORD_TABLE_NAME: str = "emoji-record"
+    MONGODB_CRYPTO_REDEEM_TABLE_NAME: str = "crypto-redeem-record"
 
     POPCAT_TAP_INTERVAL: int = 120
 

@@ -64,3 +64,14 @@ class DinorunRecord(BaseModel):
     card_uid: str
     time: datetime
     score: float
+
+
+class ActivityDate(IntEnum):
+    fisrt = 1
+    second = 2
+
+
+class CryptoRedeemRecord(BaseModel):
+    card_uid: str
+    date: ActivityDate
+    time: datetime

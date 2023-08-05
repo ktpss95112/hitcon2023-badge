@@ -5,7 +5,13 @@ from collections import Counter
 from fastapi.testclient import TestClient
 
 from app import app
-from app.model import DinorunRecord, EmojiRecord, PopcatRecord
+from app.model import (
+    ActivityDate,
+    CryptoRedeemRecord,
+    DinorunRecord,
+    EmojiRecord,
+    PopcatRecord,
+)
 from script.create_db import data, main
 
 db_initialized = False
@@ -53,7 +59,7 @@ def test_popcat():
             )
             assert resp.status_code == 200
             rj = resp.json()
-            assert rj[0] == True and isinstance(rj[1], int)
+            assert rj[0] is True and isinstance(rj[1], int)
 
             # test get score
             resp = client.get(f"/popcat/{user.card_uid}/score")
@@ -117,7 +123,7 @@ def test_dinorun():
             resp = client.post(f"/dinorun/{user.card_uid}?score={score}")
             assert resp.status_code == 200
             rj = resp.json()
-            assert rj == True
+            assert rj is True
 
             # test get score
             resp = client.get(f"/dinorun/{user.card_uid}/score")
@@ -262,6 +268,50 @@ def test_emoji():
             assert len(resp.json()) == len_ + 1
             assert all(EmojiRecord.parse_obj(record) for record in resp.json())
             len_ += 1
+
+
+@ensure_db
+def test_crypto():
+    with TestClient(app) as client:
+        reader = data["card reader"]["crypto reader"]
+        user1 = data["user"]["user1"]
+        user2 = data["user"]["user2"]
+        user3 = data["user"]["user3"]
+        users = [user1, user2, user3]
+        dates = [ActivityDate.fisrt, ActivityDate.second]
+
+        resp = client.get("/crypto")
+        assert resp.status_code == 200
+        assert isinstance((rj := resp.json()), list) and len(rj) == 0
+
+        for user, date in zip(users, dates):
+            resp = client.get(f"/crypto/user/{user.card_uid}/date/{date}")
+            assert resp.status_code == 200
+            assert resp.json() is None
+
+        for i, (user, date) in enumerate(zip(users, dates)):
+            resp = client.post(f"/crypto/user/{user.card_uid}/date/{date}")
+            assert resp.status_code == 200
+            assert resp.json() is True
+
+            resp = client.get("/crypto")
+            assert resp.status_code == 200
+            assert isinstance((rj := resp.json()), list) and len(rj) == i + 1
+
+        for user, date in zip(users, dates):
+            resp = client.get(f"/crypto/user/{user.card_uid}/date/{date}")
+            assert resp.status_code == 200
+            record = CryptoRedeemRecord.parse_obj(resp.json())
+            assert record.card_uid == user.card_uid
+            assert record.date == date
+
+        resp = client.get("/crypto")
+        assert resp.status_code == 200
+        rj = resp.json()
+        all_key = set((user.card_uid, date) for user, date in zip(users, dates))
+        for record in map(CryptoRedeemRecord.parse_obj, rj):
+            all_key.remove((record.card_uid, record.date))
+        assert len(all_key) == 0
 
 
 @ensure_db
