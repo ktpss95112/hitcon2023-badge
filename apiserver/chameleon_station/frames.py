@@ -180,7 +180,9 @@ class EditorFrame(ttk.Frame):
         self.columnconfigure(0, weight=1)
 
         # setup data inspector frame
-        self.__inspect_frame = _EditorInspectFrame(self, command_frame=command_frame)
+        self.__inspect_frame = _EditorInspectFrame(
+            self, command_frame=command_frame, hex_view_frame=self.__hex_view_frame
+        )
         self.__inspect_frame["padding"] = 5
         self.__inspect_frame.grid(column=1, row=0, sticky=NSEW)
 
@@ -394,7 +396,12 @@ class _EditorHexViewFrame(ttk.Frame):
 
 
 class _EditorInspectFrame(ttk.Frame):
-    def __init__(self, parent: Misc, command_frame: CommandFrame):
+    def __init__(
+        self,
+        parent: Misc,
+        command_frame: CommandFrame,
+        hex_view_frame: _EditorHexViewFrame,
+    ):
         super().__init__(parent)
 
         self.__data_view_frame = _EditorInspectDataViewFrame(self)
@@ -402,7 +409,9 @@ class _EditorInspectFrame(ttk.Frame):
         self.__data_view_frame.grid(column=0, row=0, sticky=NSEW)
 
         self.__write_card_frame = _EditorInspectWriteCardFrame(
-            self, scan_card_command=command_frame._command_scan_card
+            self,
+            scan_card_command=command_frame._command_scan_card,
+            hex_view_frame=hex_view_frame,
         )
         self.__write_card_frame["padding"] = 5
         self.__write_card_frame.grid(column=0, row=1, sticky=NSEW)
@@ -465,7 +474,12 @@ string: {decoded}
 
 
 class _EditorInspectWriteCardFrame(ttk.LabelFrame):
-    def __init__(self, parent: Misc, scan_card_command: Callable):
+    def __init__(
+        self,
+        parent: Misc,
+        scan_card_command: Callable,
+        hex_view_frame: _EditorHexViewFrame,
+    ):
         self.__scan_card_command = scan_card_command
         super().__init__(parent)
         self["text"] = "Card Writer"
@@ -488,6 +502,28 @@ class _EditorInspectWriteCardFrame(ttk.LabelFrame):
             "block": create_field("block", 1),
             **{f"data{i}": create_field(f"data{i}", i + 2) for i in range(4)},
         }
+
+        self.__write_highlight_tag_name = "write_highlight"
+        hex_view_frame._text.tag_configure(
+            self.__write_highlight_tag_name, background="green yellow"
+        )
+        hex_view_frame._text.tag_lower(self.__write_highlight_tag_name, belowThis=SEL)
+
+        def update_write_highlight(*args):
+            hex_view_frame._text.tag_remove(self.__write_highlight_tag_name, "0.0", END)
+            try:
+                sector = int(self._write_card_fields["sector"].get())
+                block = int(self._write_card_fields["block"].get())
+            except:
+                return
+            start, *_ = hex_view_frame._text.tag_ranges(ChunkTag(sector, block, 0))
+            _, end, *_ = hex_view_frame._text.tag_ranges(
+                ChunkTag(sector, block, config.BLOCK_SIZE // config.DISPLAY_CHUNK - 1)
+            )
+            hex_view_frame._text.tag_add(self.__write_highlight_tag_name, start, end)
+
+        self._write_card_fields["sector"].trace_add("write", update_write_highlight)
+        self._write_card_fields["block"].trace_add("write", update_write_highlight)
 
         write_button = ttk.Button(self)
         write_button["text"] = "write card"
