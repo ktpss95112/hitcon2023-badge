@@ -29,6 +29,15 @@ def read(blkid: int):
     else:
         print(arduino.readline())
 
+def read_uid():
+    arduino.write(b'READ_UID\n')
+    res = arduino.read(1)
+    if res == b'O':
+        print(arduino.read(4))
+        arduino.read()
+    else:
+        print(arduino.readline())
+
 def write(blkid: int, data: bytes):
     assert len(data) == 16
     arduino.write(f'WRITE\n{blkid}\n'.encode())
