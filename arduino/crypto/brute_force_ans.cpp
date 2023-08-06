@@ -21,7 +21,7 @@ uint power(uint x, uint y) {
   return ans;
 }
 uint sponsor3(uint x) { return x * x; }
-1 uint wild2(uint x) { return x + 1; }
+uint wild2(uint x) { return x + 1; }
 uint wild3(uint x) {
   uint r = x & 0x1f;
   uint mask = (1u << r) - 1;
