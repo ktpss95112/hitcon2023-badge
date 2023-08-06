@@ -160,7 +160,8 @@ class ProgressWindow(Toplevel):
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
 
-        # TODO: interactive progress bar
+        # TODO: interactive progress bar using ttk.Panedwindow
+        # TODO: disable the underlying parent window
 
     def _set_text(self, content: str):
         self.__label["text"] = content
@@ -416,6 +417,12 @@ class _EditorInspectFrame(ttk.Frame):
         self.__write_card_frame["padding"] = 5
         self.__write_card_frame.grid(column=0, row=1, sticky=NSEW)
 
+        self.__write_uid_frame = _EditorInspectWriteUIDFrame(
+            self, command_frame=command_frame
+        )
+        self.__write_uid_frame["padding"] = 5
+        self.__write_uid_frame.grid(column=0, row=2, sticky=NSEW)
+
         # export some private functions/properties
         self._set_inspect_data = self.__data_view_frame._set_inspect_data
         self._write_card_fields = self.__write_card_frame._write_card_fields
@@ -551,6 +558,47 @@ class _EditorInspectWriteCardFrame(ttk.LabelFrame):
             return
 
         self.__scan_card_command()
+
+
+class _EditorInspectWriteUIDFrame(ttk.LabelFrame):
+    def __init__(
+        self,
+        parent: Misc,
+        command_frame: CommandFrame,
+    ):
+        self.__command_frame = command_frame
+        super().__init__(parent)
+        self["text"] = "Overwrite UID"
+        self.columnconfigure(0, weight=1)
+
+        self.__strvar = StringVar()
+        input_box = ttk.Entry(self, textvariable=self.__strvar)
+        input_box["font"] = "TkFixedFont"
+        input_box.grid(column=0, row=0)
+
+        button = ttk.Button(self)
+        button["text"] = "Write"
+        button["command"] = self.__write_uid
+        button.grid(column=0, row=1)
+
+        command_frame._set_scan_card_callback(self.__update_input_box)
+
+    def __write_uid(self):
+        try:
+            content_str = self.__strvar.get()
+            content = bytes.fromhex(content_str)
+            assert len(content) == 4
+        except Exception as e:
+            print(f"Cannot write uid: ({e})")
+            return
+
+        card.write_uid(content)
+        self.__command_frame._command_scan_card()
+
+    def __update_input_box(self, data: bytes, success: bool):
+        if len(data) < 4:
+            return
+        self.__strvar.set(" ".join(f"{byte:02x}" for byte in data[:4]))
 
 
 class _GameInspectorFrame(ttk.Frame):
