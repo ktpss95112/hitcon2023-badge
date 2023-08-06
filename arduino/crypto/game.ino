@@ -12,52 +12,52 @@ namespace game {
 #ifdef DEVCORE
 	static uint32_t update_data(uint32_t src) {
 		static char str[] = "DVCR";
-		return src ^ *(int *)str;
+		return src ^ *(uint32_t *)str;
 	}
 #elif defined CYCRAFT
 	static uint32_t update_data(uint32_t src) {
 		static char str[] = "CRFT";
-		return src ^ *(int *)str;
+		return src ^ *(uint32_t *)str;
 	}
 #elif defined FOXCONN
 	static uint32_t update_data(uint32_t src) {
 		static char str[] = "2317";
-		return src ^ *(int *)str;
+		return src ^ *(uint32_t *)str;
 	}
 #elif defined ISIP
 	static uint32_t update_data(uint32_t src) {
 		static char str[] = "ISIP";
-		return src ^ *(int *)str;
+		return src ^ *(uint32_t *)str;
 	}
 #elif defined KLICKLACK
 	static uint32_t update_data(uint32_t src) {
 		static char str[] = "KKCO";
-		return src ^ *(int *)str;
+		return src ^ *(uint32_t *)str;
 	}
 #elif defined CHT_SEC
 	static uint32_t update_data(uint32_t src) {
 		static char str[] = "CHTS";
-		return src ^ *(int *)str;
+		return src ^ *(uint32_t *)str;
 	}
 #elif defined TRAPA
 	static uint32_t update_data(uint32_t src) {
 		static char str[] = "TRPA";
-		return src ^ *(int *)str;
+		return src ^ *(uint32_t *)str;
 	}
 #elif defined RAKUTEN
 	static uint32_t update_data(uint32_t src) {
 		static char str[] = "RKTN";
-		return src ^ *(int *)str;
+		return src ^ *(uint32_t *)str;
 	}
 #elif defined KKCOMPANY
 	static uint32_t update_data(uint32_t src) {
 		static char str[] = "KBOX";
-		return src ^ *(int *)str;
+		return src ^ *(uint32_t *)str;
 	}
 #elif defined OFFSEC
 	static uint32_t update_data(uint32_t src) {
 		static char str[] = "OFSC";
-		return src ^ *(int *)str;
+		return src ^ *(uint32_t *)str;
 	}
 #elif defined RESET
 	static uint32_t update_data(uint32_t src) {
