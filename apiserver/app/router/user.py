@@ -17,8 +17,3 @@ async def read_user(user: GetUserDep) -> User:
 @router.post("/")
 async def write_user(user: User, db: DBDep):
     await db.write_user(user)
-
-
-@router.get("/{card_uid}/tap_record", tags=["tap record"])
-async def get_tap_record_by_user(user: GetUserDep, db: DBDep) -> list[TapRecord]:
-    return await db.get_tap_record_by_user(user)

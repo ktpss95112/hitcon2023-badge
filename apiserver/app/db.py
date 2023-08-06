@@ -118,6 +118,12 @@ class DB(abc.ABC):
         pass
 
     @abc.abstractmethod
+    async def get_tap_record_by_user_and_reader(
+        self, user: User, reader: CardReader
+    ) -> list[TapRecord]:
+        pass
+
+    @abc.abstractmethod
     async def new_emoji(self, record: EmojiRecord):
         pass
 
@@ -284,6 +290,18 @@ class MongoDB(DB):
             map(
                 TapRecord.parse_obj,
                 self.__tap_record_table.find({"reader_id": reader.id}),
+            )
+        )
+
+    async def get_tap_record_by_user_and_reader(
+        self, user: User, reader: CardReader
+    ) -> list[TapRecord]:
+        return list(
+            map(
+                TapRecord.parse_obj,
+                self.__tap_record_table.find(
+                    {"card_uid": user.card_uid, "reader_id": reader.id}
+                ),
             )
         )
 

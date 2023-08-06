@@ -39,11 +39,6 @@ def user_add_record(func):
     return wrapper
 
 
-@router.get("/tap_record", tags=["tap record"])
-async def get_all_tap_record(db: DBDep) -> list[TapRecord]:
-    return await db.get_all_tap_record()
-
-
 @router.post(
     "/sponsor/{reader_id}/user/{card_uid}",
     dependencies=[CheckCardReaderTypeDep(CardReaderType.SPONSOR)],
@@ -136,3 +131,25 @@ async def tap_sponsor_flush_emoji(
 @user_add_record
 async def tap_crypto(user: GetUserDep, reader: GetReaderDep, db: DBDep) -> bool:
     return True
+
+
+@router.get("/tap_record", tags=["tap record"])
+async def get_all_tap_record(db: DBDep) -> list[TapRecord]:
+    return await db.get_all_tap_record()
+
+
+@router.get("/tap_record/user/{card_uid}", tags=["tap record"])
+async def get_tap_record_by_user(user: GetUserDep, db: DBDep) -> list[TapRecord]:
+    return await db.get_tap_record_by_user(user)
+
+
+@router.get("/tap_record/cardreader/{reader_id}", tags=["tap record"])
+async def get_tap_record_by_reader(reader: GetReaderDep, db: DBDep) -> list[TapRecord]:
+    return await db.get_tap_record_by_reader(reader)
+
+
+@router.get("/tap_record/user/{card_uid}/cardreader/{reader_id}", tags=["tap record"])
+async def get_tap_record_by_user(
+    user: GetUserDep, reader: GetReaderDep, db: DBDep
+) -> list[TapRecord]:
+    return await db.get_tap_record_by_user_and_reader(user, reader)
