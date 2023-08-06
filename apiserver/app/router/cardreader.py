@@ -44,8 +44,3 @@ async def get_reader(reader: GetReaderDep) -> CardReader:
 @router.post("/")
 async def write_reader(reader: CardReader, db: DBDep):
     await db.write_reader(reader)
-
-
-@router.get("/{reader_id}/tap_record", tags=["tap record"])
-async def get_tap_record_by_user(reader: GetReaderDep, db: DBDep) -> list[TapRecord]:
-    return await db.get_tap_record_by_reader(reader)

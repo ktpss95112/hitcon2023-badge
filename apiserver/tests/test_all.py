@@ -163,19 +163,26 @@ def test_tap():
     with TestClient(app) as client:
         counter = Counter()
         for user in data["user"].values():
-            counter[user] = len(client.get(f"/user/{user.card_uid}/tap_record").json())
+            counter[user] = len(
+                client.get(f"/tap/tap_record/user/{user.card_uid}").json()
+            )
         for reader in data["card reader"].values():
             counter[reader] = len(
-                client.get(f"/cardreader/{reader.id}/tap_record").json()
+                client.get(f"/tap/tap_record/cardreader/{reader.id}").json()
             )
 
         def test(url_prefix, reader, user, **kwargs):
             card_uid = user.card_uid
             reader_id = reader.id
 
-            curr_len_user = len(client.get(f"/user/{card_uid}/tap_record").json())
+            curr_len_user = len(client.get(f"/tap/tap_record/user/{card_uid}").json())
             curr_len_reader = len(
-                client.get(f"/cardreader/{reader_id}/tap_record").json()
+                client.get(f"/tap/tap_record/cardreader/{reader_id}").json()
+            )
+            curr_len_user_reader = len(
+                client.get(
+                    f"/tap/tap_record/user/{card_uid}/cardreader/{reader_id}"
+                ).json()
             )
 
             assert curr_len_user == counter[user]
@@ -184,12 +191,18 @@ def test_tap():
             resp = client.post(f"{url_prefix}/{reader_id}/user/{card_uid}", **kwargs)
             assert resp.status_code == 200
 
-            new_len_user = len(client.get(f"/user/{card_uid}/tap_record").json())
+            new_len_user = len(client.get(f"/tap/tap_record/user/{card_uid}").json())
             new_len_reader = len(
-                client.get(f"/cardreader/{reader_id}/tap_record").json()
+                client.get(f"/tap/tap_record/cardreader/{reader_id}").json()
+            )
+            new_len_user_reader = len(
+                client.get(
+                    f"/tap/tap_record/user/{card_uid}/cardreader/{reader_id}"
+                ).json()
             )
             assert new_len_user == curr_len_user + 1
             assert new_len_reader == curr_len_reader + 1
+            assert new_len_user_reader == curr_len_user_reader + 1
 
             counter[user] += 1
             counter[reader] += 1
