@@ -101,6 +101,9 @@ class CommandFrame(ttk.LabelFrame):
         self.update()
 
         try:
+            # At least we have UID, in case any error occurs.
+            self.data = data = card.read_uid()
+
             self.data = data = card.read_all()
             success = (
                 len(data) == config.NUM_SECTOR * config.NUM_BLOCK * config.BLOCK_SIZE
@@ -113,7 +116,9 @@ class CommandFrame(ttk.LabelFrame):
 
         except Exception as e:
             progress_window._set_text(f"Could not read card!\nReason: {e}")
-            data = e.partial_data if hasattr(e, "partial_data") else b""
+            partial_data = e.partial_data if hasattr(e, "partial_data") else b""
+            if len(partial_data) > len(data):
+                self.data = data = partial_data
             success = False
 
         for callback in self.__scan_card_callback:

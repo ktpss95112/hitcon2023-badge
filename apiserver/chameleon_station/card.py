@@ -56,6 +56,10 @@ class ArduinoSerialMock(SerialBase):
                 self.data = self.data[:start] + data + self.data[end:]
                 self.output_buf.extend(b"O\n")
 
+            elif line == b"READ_UID\n":
+                data = self.data[:4]
+                self.output_buf.extend(b"O" + data + b"\n")
+
             elif line == b"WRITE_UID\n":
                 new_uid = input_buf.read(5)[:4]
                 self.data = new_uid + self.data[4:]
@@ -65,6 +69,9 @@ class ArduinoSerialMock(SerialBase):
                 new_uid = input_buf.read(5)[:4]
                 self.data = new_uid + self.data[4:]
                 self.output_buf.extend(b"O\n")
+
+            else:
+                raise Exception("Unsupported arduino command!")
 
     def read(self, size) -> bytes:
         ret = bytearray()
@@ -135,6 +142,16 @@ class CardArduino:
             command=f"WRITE\n{block_id}\n".encode() + data + b"\n", recv_start_with=b"O"
         )
 
+    def read_uid(self) -> bytes:
+        def callback(*args):
+            content = self.serial.read(4)
+            self.serial.readline()
+            return content
+
+        return self.__communicate(
+            command=b"READ_UID\n", recv_start_with=b"O", recv_callback=callback
+        )
+
     def write_uid(self, data: bytes):
         assert len(data) == 4
         self.__communicate(command=b"WRITE_UID\n" + data + b"\n", recv_start_with=b"O")
@@ -144,6 +161,7 @@ class CardArduino:
         self.__communicate(command=b"UNBRICK\n" + data + b"\n", recv_start_with=b"O")
 
     def read_all(self) -> bytes:
+        assert False
         try:
             ret = b""
             for i_sector in range(config.NUM_SECTOR):
