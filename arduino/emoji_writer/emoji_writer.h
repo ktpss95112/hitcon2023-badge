@@ -1,12 +1,12 @@
-#ifndef _GAME_H
-#define _GAME_H
+#ifndef _EMOJI_WRITER_H
+#define _EMOJI_WRITER_H
 
 #include <WiFiClientSecureBearSSL.h>
 #include "config.h"
 #include "card.h"
 
 
-namespace game {
+namespace emoji_writer {
 	struct emoji_timetable {
 		time_t starttime;
 		String emoji;
@@ -31,9 +31,7 @@ namespace game {
 	std::shared_ptr<emoji_timetable> emoji_timetable_head = NULL;
 
 	void setup();
-	void writer_loop();
-	void eraser_loop();
-	void flusher_loop();
+	void loop();
 }
 
 #endif
