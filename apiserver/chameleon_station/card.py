@@ -161,7 +161,6 @@ class CardArduino:
         self.__communicate(command=b"UNBRICK\n" + data + b"\n", recv_start_with=b"O")
 
     def read_all(self) -> bytes:
-        assert False
         try:
             ret = b""
             for i_sector in range(config.NUM_SECTOR):
