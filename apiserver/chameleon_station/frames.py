@@ -100,6 +100,8 @@ class CommandFrame(ttk.LabelFrame):
         progress_window = ProgressWindow(self)
         self.update()
 
+        data = b""
+
         try:
             # At least we have UID, in case any error occurs.
             self.data = data = card.read_uid()
@@ -115,7 +117,7 @@ class CommandFrame(ttk.LabelFrame):
                 progress_window._set_text("Failed to read card!")
 
         except Exception as e:
-            progress_window._set_text(f"Could not read card!\nReason: {e}")
+            progress_window._set_text(f"Read card incomplete!\nReason: {e}")
             partial_data = e.partial_data if hasattr(e, "partial_data") else b""
             if len(partial_data) > len(data):
                 self.data = data = partial_data
@@ -193,11 +195,17 @@ class EditorFrame(ttk.Frame):
         self.__inspect_frame.grid(column=1, row=0, sticky=NSEW)
 
         # setup game inspector frame
-        self.__game_inspector_frame = _GameInspectorFrame(
+        self.__game_inspector_frame = _EditorGameInspectorFrame(
             self, hex_view_frame=self.__hex_view_frame, command_frame=command_frame
         )
         self.__game_inspector_frame["padding"] = 5
         self.__game_inspector_frame.grid(column=2, row=0, sticky=NSEW)
+
+        # setup notebook frame
+        self.__notebook_frame = _EditorNotebookFrame(self)
+        self.__notebook_frame["padding"] = 5
+        self.__notebook_frame.grid(column=3, row=0, sticky=NSEW)
+        self.columnconfigure(3, weight=5)
 
         # setup communication utilities
         self.__hex_view_frame._set_inspect_data_setter(
@@ -606,7 +614,7 @@ class _EditorInspectWriteUIDFrame(ttk.LabelFrame):
         self.__strvar.set(" ".join(f"{byte:02x}" for byte in data[:4]))
 
 
-class _GameInspectorFrame(ttk.Frame):
+class _EditorGameInspectorFrame(ttk.Frame):
     def __init__(
         self,
         parent: Misc,
@@ -615,7 +623,7 @@ class _GameInspectorFrame(ttk.Frame):
     ):
         super().__init__(parent)
 
-        self.__emoji_inspector_frame = _GameEmojiInspectorFrame(
+        self.__emoji_inspector_frame = _EditorGameEmojiInspectorFrame(
             self, hex_view_frame=hex_view_frame
         )
         self.__emoji_inspector_frame["padding"] = 5
@@ -628,7 +636,7 @@ class _GameInspectorFrame(ttk.Frame):
             self.__emoji_inspector_frame._scan_card_callback(data, success)
 
 
-class _GameEmojiInspectorFrame(ttk.LabelFrame):
+class _EditorGameEmojiInspectorFrame(ttk.LabelFrame):
     def __init__(self, parent: Misc, hex_view_frame: _EditorHexViewFrame):
         super().__init__(parent)
         self["text"] = "Emoji Game Inspector"
@@ -713,6 +721,18 @@ Field: Content = {emoji_str}
         if success:
             self.__setup_emoji_tags()
             self.__update_emoji_label()
+
+
+class _EditorNotebookFrame(ttk.LabelFrame):
+    def __init__(self, parent: Misc):
+        super().__init__(parent, width=400, height=300)
+        self["text"] = "Notes"
+        # TODO: fixed width LabelFrame
+
+        nb = Text(self)
+        nb.grid(column=0, row=0, sticky=NSEW)
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(0, weight=1)
 
 
 # Just a utility class.
