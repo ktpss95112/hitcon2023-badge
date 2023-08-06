@@ -93,7 +93,13 @@ void write_uid() {
 }
 
 void read_uid() {
+	static const String no_card = "card not found or invalid";
 	byte buf[card::UIDSIZE];
+
+	if (!card::reset()) {
+		serial::error(no_card);
+		return;
+	}
 
 	card::read_uid(buf);
 	serial::accept_with_data(buf, sizeof(buf));
