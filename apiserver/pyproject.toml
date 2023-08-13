@@ -12,7 +12,6 @@ dependencies = [
     "pymongo>=4.4.0",
     "python-dotenv>=1.0.0",
     "pytest>=7.4.0",
-    "requests>=2.31.0",
     "qrcode[pil]>=7.4.2",
     "pyserial>=3.5",
     "uvicorn[standard]>=0.23.2",
