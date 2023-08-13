@@ -58,7 +58,6 @@ def a_error_handler(
         try:
             resp = await func(*args, **kwargs)
             if 200 <= resp.status < 300:
-                print(await resp.text())
                 return True
             print(f"Dashboard API failed, code={resp.status} msg=`{await resp.text()}`")
             return False
