@@ -1,5 +1,6 @@
 import argparse
 import asyncio
+import os
 from pathlib import Path
 
 import aiohttp
@@ -7,7 +8,7 @@ from aiohttp import web
 
 from dino_pc.aio_serial import connect_serial
 from dino_pc.cardkey import CardKey
-from dino_pc.middlewares import static_middleware
+from dino_pc.middlewares import static_middleware, proxy
 
 
 gws: web.WebSocketResponse = None
@@ -52,10 +53,16 @@ async def main():
         help="serial port, such as: /dev/ttyUSB0, COM1",
     )
     pser.add_argument("-r", "--baudrate", type=int, default=9600)
+    pser.add_argument("--proxy")
     args = pser.parse_args()
 
+    proxy_pass = args.proxy if args.proxy is not None else os.getenv("API_PROXY")
+
     app = web.Application(
-        middlewares=[static_middleware("/", Path(__file__, "..", "public").resolve())]
+        middlewares=[
+            proxy("/proxy", proxy_pass, lambda path: path[6:]),
+            static_middleware("/", Path(__file__, "..", "public").resolve()),
+        ]
     )
     app.add_routes(
         [

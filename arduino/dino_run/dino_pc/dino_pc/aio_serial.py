@@ -46,12 +46,14 @@ class SerialProtocol(asyncio.Protocol):
         return inner
 
 
-async def connect_serial(serail_port: str, baudrate: int) -> SerialProtocol | None:
+async def connect_serial(
+    serail_port: str, baudrate: int, **kwargs
+) -> SerialProtocol | None:
     loop = asyncio.get_event_loop()
     try:
         protocol: SerialProtocol
         transport, protocol = await serial_asyncio.create_serial_connection(
-            loop, SerialProtocol, serail_port, baudrate=baudrate
+            loop, SerialProtocol, serail_port, baudrate=baudrate, **kwargs
         )
         return protocol
     except:
