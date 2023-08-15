@@ -804,6 +804,9 @@
 
             // Reset the time clock.
             this.time = getTimeStamp();
+
+            // inject function
+            if (window.gameOver) window.gameOver(this.distanceRan);
         },
 
         stop: function () {
