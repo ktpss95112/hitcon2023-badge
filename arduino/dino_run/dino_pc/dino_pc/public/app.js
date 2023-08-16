@@ -102,7 +102,7 @@ function gameOver(distanceRan) {
         Toast.fire({
           icon: "error",
           title: "Score uploading failed 😵",
-          text,
+          text: `[${resp.status}] ${text}`,
         });
       } else {
         Toast.fire({
