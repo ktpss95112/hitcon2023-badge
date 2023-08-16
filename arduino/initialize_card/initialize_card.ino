@@ -13,12 +13,6 @@
 #include <MFRC522.h>
 
 
-const size_t LCD_LINE_LENGTH = 16;
-LiquidCrystal_I2C lcd(0x27, 16, 2);
-const int ERR_SLEEP = 2000;
-const int NORMAL_SLEEP = 1000;
-const int SHORT_SLEEP = 500;
-
 namespace hmac256 {
     static bool arr_eq(const byte *a, const byte *b, int len) {
         for (int i = 0; i < len; ++i) {
@@ -40,40 +34,13 @@ namespace hmac256 {
     }
 }
 
-void lcd_print(const char *str, int sleep) {
-    Serial.println(str);  // for debugging
-
-    static char cache[LCD_LINE_LENGTH * 2 + 1] = {0};
-    if (strncmp(cache, str, 2 * LCD_LINE_LENGTH) == 0) {
-        delay(sleep);
-        return;
-    }
-
-    size_t len = strnlen(str, 2 * LCD_LINE_LENGTH);
-
-    lcd.clear();
-    if (len <= LCD_LINE_LENGTH) {
-        lcd.setCursor(0, 0);
-        lcd.print(str);
-    } else {
-        char str2[LCD_LINE_LENGTH + 1] = {0};
-        strncpy(str2, str, LCD_LINE_LENGTH);
-        lcd.setCursor(0, 0);
-        lcd.print(str2);
-        strncpy(str2, str + LCD_LINE_LENGTH, LCD_LINE_LENGTH);
-        lcd.setCursor(0, 1);
-        lcd.print(str2);
-    }
-    strncpy(cache, str, 2 * LCD_LINE_LENGTH);
-
-    delay(sleep);  // rate limit
-}
-
 void setup() {
     Serial.begin(9600);
     lcd.init();
     lcd.backlight();
     card::setup();
+
+    init_wifi();
 
     lcd_print("Initialized.", NORMAL_SLEEP);
 }
