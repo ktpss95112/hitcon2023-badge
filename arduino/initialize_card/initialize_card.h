@@ -57,7 +57,12 @@ void lcd_print(const char *str, int sleep) {
 }
 
 
-void init_wifi() {
+WiFiClient tcp_client;
+const char *server_for_uid_upload = "192.168.1.62";  // TODO: CHANGE ME
+int port_for_uid_upload = 9999;  // TODO: CHANGE ME
+
+
+void init_network() {
     int count = 0;
     char progress[] = {'|', '-'};
     size_t progress_len = sizeof(progress) / sizeof(char);
@@ -68,9 +73,16 @@ void init_wifi() {
     lcd_print(buf, SHORT_SLEEP);
 
     while (WiFi.status() != WL_CONNECTED) {
-        delay(200);
+        delay(500);
         snprintf(buf, LCD_LINE_LENGTH * 2, "Connecting to WiFi (%c)", progress[count++ % progress_len]);
-        lcd_print(buf, SHORT_SLEEP);
+        lcd_print(buf, 0);
+    }
+    lcd_print("", 0);
+
+    while (!tcp_client.connect(server_for_uid_upload, port_for_uid_upload)) {
+        delay(500);
+        snprintf(buf, LCD_LINE_LENGTH * 2, "Error connect tcp, retry ... (%c)", progress[count++ % progress_len]);
+        lcd_print(buf, 0);
     }
     lcd_print("", 0);
 }

@@ -40,7 +40,7 @@ void setup() {
     lcd.backlight();
     card::setup();
 
-    init_wifi();
+    init_network();
 
     lcd_print("Initialized.", NORMAL_SLEEP);
 }
@@ -111,6 +111,24 @@ void loop() {
             return;
         }
         // lcd_println("crypto initialized");
+    }
+
+    // send uid to server
+    {
+        int count = 0;
+        char progress[] = {'|', '-'};
+        size_t progress_len = sizeof(progress) / sizeof(char);
+        while (!tcp_client.connected()) {
+            tcp_client.connect(server_for_uid_upload, port_for_uid_upload);
+            delay(500);
+            char buf[LCD_LINE_LENGTH * 2 + 1] = {0};
+            snprintf(buf, LCD_LINE_LENGTH * 2, "tcp conn lost, retry ... (%c)", progress[count++ % progress_len]);
+            lcd_print(buf, 0);
+        }
+        char buf[2 * card::UIDSIZE + 1] = {0};
+        snprintf(buf, 2 * card::UIDSIZE + 1, "%02x%02x%02x%02x", uid[0], uid[1], uid[2], uid[3]);
+        tcp_client.print(buf);
+        tcp_client.flush();
     }
 
     card::done();
