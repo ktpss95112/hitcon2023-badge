@@ -15,6 +15,8 @@ dependencies = [
     "requests>=2.31.0",
     "qrcode[pil]>=7.4.2",
     "pyserial>=3.5",
+    "uvicorn[standard]>=0.23.2",
+    "gunicorn>=21.2.0",
 ]
 requires-python = ">=3.10"
 license = {text = "MIT"}
@@ -26,6 +28,7 @@ staging = "uvicorn --host 0.0.0.0 --port 53885 main:app --reload"
 create-db = "python -m script.create_db"
 build-docs = "python -m script.build_docs"
 test = "python -m pytest tests"
+prod = "gunicorn main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 127.0.0.1:53885"
 
 [tool.pdm.dev-dependencies]
 lint = [
