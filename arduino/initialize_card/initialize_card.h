@@ -21,13 +21,8 @@ void lcd_print(const char *str, int sleep) {
     Serial.println(str);  // for debugging
 
     static char cache[2][LCD_LINE_LENGTH + 1] = {0};
-    // if (strncmp(cache, str, 2 * LCD_LINE_LENGTH) == 0) {
-    //     delay(sleep);
-    //     return;
-    // }
 
     size_t len = strnlen(str, 2 * LCD_LINE_LENGTH);
-
     if (len <= LCD_LINE_LENGTH) {
         if (strncmp(cache[0], str, LCD_LINE_LENGTH) != 0) {
             lcd.clear();
