@@ -139,18 +139,13 @@ int main() {
         prv[nxt] = f;
         q.push(nxt);
       }
+      nstep++;
     }
-    nstep++;
     if (nstep >= 12)
       break;
   }
-  if (q.empty())
-    puts("q empty");
-  else
-    puts("all = 0");
-
-  return 0;
 }
+
 // 1056 <= = (+2) == 1054 <= = wild04 == 69074944 <= = wild3 == 527 <=
 //     = sponsor01 == 1380144203 <= = (+5) == 1380144198 <=
 //     = wild04 == 1413894723 <= = sponsor02 == 0
