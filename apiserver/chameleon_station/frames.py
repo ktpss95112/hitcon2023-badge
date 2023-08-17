@@ -128,18 +128,25 @@ class CommandFrame(ttk.LabelFrame):
 
     def _command_show_qrcode(self):
         popup_window = Toplevel(self)
-        popup_window.geometry(f"{config.QRCODE_SIZE}x{config.QRCODE_SIZE}")
+        popup_window.geometry(f"{config.QRCODE_SIZE}x{config.QRCODE_SIZE + 100}")
 
         card_uid = self.data[:4]
-        qrcode_content = card_uid.hex()
+        checksum = bytes([card_uid[0] ^ card_uid[1] ^ card_uid[2] ^ card_uid[3]])
+        qrcode_content_raw = card_uid + checksum
+        qrcode_content = f"HITCON2023_Badge={qrcode_content_raw.hex()}"
         self.qrcode_img = PIL.ImageTk.PhotoImage(
             qrcode.make(qrcode_content).resize((config.QRCODE_SIZE, config.QRCODE_SIZE))
         )
 
         canvas = Canvas(popup_window)
         canvas["width"] = canvas["height"] = config.QRCODE_SIZE
-        canvas.grid()
+        canvas.grid(column=0, row=0)
         canvas.create_image(0, 0, image=self.qrcode_img, anchor=NW)
+
+        label = ttk.Label(popup_window)
+        label["text"] = f"Scan or enter manually:\n`{qrcode_content_raw.hex()}`"
+        label["font"] = "TkFixedFont"
+        label.grid(column=0, row=1, sticky=NSEW)
 
     def _command_clear_emoji_buffer(self):
         card.clear_emoji_buffer(self.data)
