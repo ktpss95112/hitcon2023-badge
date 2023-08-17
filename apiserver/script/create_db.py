@@ -25,18 +25,26 @@ data = {
         "staff reader": model.CardReader(
             id="reader0", name="staff reader", type=model.CardReaderType.STAFF
         ),
+        # fmt: off
         "sponsor reader 1": model.CardReader(
             id="reader1-1",
             name="sponsor reader 1",
             type=model.CardReaderType.SPONSOR,
             time_emoji=[
-                (datetime(2023, 6, 1, 0, 0, 0), emoji.emojize(":thumbs_up:")),
-                (datetime(2023, 6, 1, 0, 10, 0), emoji.emojize(":zany_face:")),
-                (datetime(2023, 6, 1, 0, 20, 0), emoji.emojize(":cold_face:")),
-                (datetime(2023, 6, 1, 0, 30, 0), emoji.emojize(":woozy_face:")),
-                (datetime(2023, 6, 1, 0, 40, 0), emoji.emojize(":rocket:")),
-                (datetime(2023, 6, 1, 0, 50, 0), emoji.emojize(":eleven_thirty:")),
-                (datetime(2023, 6, 1, 1, 0, 0), emoji.emojize(":leafy_green:")),
+                (datetime(2023, 8, 18, 9, 0, 0), emoji.emojize(":thumbs_up:")),
+                (datetime(2023, 8, 18, 9, 10, 0), emoji.emojize(":zany_face:")),
+                (datetime(2023, 8, 18, 9, 20, 0), emoji.emojize(":cold_face:")),
+                (datetime(2023, 8, 18, 9, 30, 0), emoji.emojize(":woozy_face:")),
+                (datetime(2023, 8, 18, 9, 40, 0), emoji.emojize(":rocket:")),
+                (datetime(2023, 8, 18, 9, 50, 0), emoji.emojize(":eleven_thirty:")),
+                (datetime(2023, 8, 18, 10, 0, 0), emoji.emojize(":leafy_green:")),
+                (datetime(2023, 8, 19, 9, 0, 0), emoji.emojize(":thumbs_up:")),
+                (datetime(2023, 8, 19, 9, 10, 0), emoji.emojize(":zany_face:")),
+                (datetime(2023, 8, 19, 9, 20, 0), emoji.emojize(":cold_face:")),
+                (datetime(2023, 8, 19, 9, 30, 0), emoji.emojize(":woozy_face:")),
+                (datetime(2023, 8, 19, 9, 40, 0), emoji.emojize(":rocket:")),
+                (datetime(2023, 8, 19, 9, 50, 0), emoji.emojize(":eleven_thirty:")),
+                (datetime(2023, 8, 19, 10, 0, 0), emoji.emojize(":leafy_green:")),
             ],
         ),
         "sponsor reader 2": model.CardReader(
@@ -44,27 +52,23 @@ data = {
             name="sponsor reader 2",
             type=model.CardReaderType.SPONSOR,
             time_emoji=[
-                (datetime(2023, 6, 1, 0, 0, 0), emoji.emojize(":winking_face:")),
-                (
-                    datetime(2023, 6, 1, 0, 10, 0),
-                    emoji.emojize(":face_with_tears_of_joy:"),
-                ),
-                (
-                    datetime(2023, 6, 1, 0, 20, 0),
-                    emoji.emojize(":face_with_hand_over_mouth:"),
-                ),
-                (datetime(2023, 6, 1, 0, 30, 0), emoji.emojize(":zipper_mouth_face:")),
-                (
-                    datetime(2023, 6, 1, 0, 40, 0),
-                    emoji.emojize(":sad_but_relieved_face:"),
-                ),
-                (datetime(2023, 6, 1, 0, 50, 0), emoji.emojize(":clown_face:")),
-                (
-                    datetime(2023, 6, 1, 1, 0, 0),
-                    emoji.emojize(":smiling_face_with_horns:"),
-                ),
+                (datetime(2023, 8, 18, 9, 0, 0), emoji.emojize(":winking_face:")),
+                (datetime(2023, 8, 18, 9, 10, 0), emoji.emojize(":face_with_tears_of_joy:")),
+                (datetime(2023, 8, 18, 9, 20, 0),emoji.emojize(":face_with_hand_over_mouth:")),
+                (datetime(2023, 8, 18, 9, 30, 0), emoji.emojize(":zipper_mouth_face:")),
+                (datetime(2023, 8, 18, 9, 40, 0),emoji.emojize(":sad_but_relieved_face:")),
+                (datetime(2023, 8, 18, 9, 50, 0), emoji.emojize(":clown_face:")),
+                (datetime(2023, 8, 18, 10, 0, 0),emoji.emojize(":smiling_face_with_horns:")),
+                (datetime(2023, 8, 19, 9, 0, 0), emoji.emojize(":winking_face:")),
+                (datetime(2023, 8, 19, 9, 10, 0), emoji.emojize(":face_with_tears_of_joy:")),
+                (datetime(2023, 8, 19, 9, 20, 0),emoji.emojize(":face_with_hand_over_mouth:")),
+                (datetime(2023, 8, 19, 9, 30, 0), emoji.emojize(":zipper_mouth_face:")),
+                (datetime(2023, 8, 19, 9, 40, 0),emoji.emojize(":sad_but_relieved_face:")),
+                (datetime(2023, 8, 19, 9, 50, 0), emoji.emojize(":clown_face:")),
+                (datetime(2023, 8, 19, 10, 0, 0),emoji.emojize(":smiling_face_with_horns:")),
             ],
         ),
+        # fmt: on
         "popcat reader": model.CardReader(
             id="reader2", name="popcat reader", type=model.CardReaderType.POPCAT
         ),

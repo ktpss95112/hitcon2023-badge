@@ -325,3 +325,28 @@ def test_crypto():
         for record in map(CryptoRedeemRecord.parse_obj, rj):
             all_key.remove((record.card_uid, record.date))
         assert len(all_key) == 0
+
+
+@ensure_db
+def test_read_emoji_table():
+    with TestClient(app) as client:
+        reader1 = data["card reader"]["sponsor reader 1"]
+        reader2 = data["card reader"]["sponsor reader 2"]
+
+        for reader in [reader1, reader2]:
+            all_ = set()
+            for day in (1, 2):
+                for part in range(4):
+                    resp = client.get(
+                        f"/cardreader/emoji_time_table/{reader.id}/day/{day}/part/{part}"
+                    )
+                    assert resp.status_code == 200
+                    rj = resp.json()
+                    for dt, emoji in rj:
+                        all_.add((dt, emoji))
+
+            resp = client.get(f"/cardreader/emoji_time_table/{reader.id}")
+            assert resp.status_code == 200
+            rj = resp.json()
+            print(rj)
+            assert all_ == set([(dt, emoji) for dt, emoji in rj])
