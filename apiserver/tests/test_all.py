@@ -325,9 +325,3 @@ def test_crypto():
         for record in map(CryptoRedeemRecord.parse_obj, rj):
             all_key.remove((record.card_uid, record.date))
         assert len(all_key) == 0
-
-
-@ensure_db
-def test_dashboard():
-    # TODO
-    pass
