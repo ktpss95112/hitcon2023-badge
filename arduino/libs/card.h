@@ -3,10 +3,18 @@
 
 #include <SPI.h>
 #include <MFRC522.h>
+#include "config.h"
 
 namespace card {
+#ifdef D1R1
 	const auto RST_PIN = D9;
 	const auto SS_PIN = D10;
+#elif defined D1R2
+	const auto RST_PIN = D4;
+	const auto SS_PIN = D8;
+#else
+#error "please specify the board type in master_config.h"
+#endif
 	const int BLKSIZE = 16;
 	const int UIDSIZE = 4;
 	const int BLKCNT = 64;

@@ -2,18 +2,15 @@
 #include "card.h"
 #include "util.h"
 #include "network.h"
+#include "lcd.h"
 #include <ArduinoJson.h>
 
 namespace game {
     void setup() {
-        if (network::fetch_time() <= DAY2_EPOCH)
-            TODAY = 1;
-        else
-            TODAY = 2;
     }
 
     static bool read_incr(uint32_t *incr) {
-        int res = card::pread((byte *)incr, sizeof(incr), incr_off[TODAY]);
+        int res = card::pread((byte *)incr, sizeof(incr), incr_off[network::TODAY]);
 
         if (res != sizeof(*incr)) {
             Serial.println("Failed to read incr");
@@ -21,6 +18,11 @@ namespace game {
         }
 
         return true;
+    }
+
+    static int decode_incr_err(uint32_t incr) {
+        Serial.println("ERROR: TODAY is likely to be 0");
+        return incr;
     }
 
     static int decode_incr_1(uint32_t incr) {
@@ -33,7 +35,7 @@ namespace game {
         return lower - upper;
     }
 
-    int (*decode_incr[])(uint32_t) = {decode_incr_1, decode_incr_2};
+    int (*decode_incr[])(uint32_t) = {decode_incr_err, decode_incr_1, decode_incr_2};
 
     static bool post_incr(int incr, int *cd) {
         byte uid[card::UIDSIZE];
@@ -67,23 +69,37 @@ namespace game {
         return doc[0];
     }
 
-    void process_card() {
+    bool process_card() {
         bool success;
         uint32_t orig_incr;
         int cd, new_incr;
         
-        if (!read_incr(&orig_incr))
-            return;
+        if (!read_incr(&orig_incr)) {
+            lcd::print_multi("card error\ncontact staff");
+            return false;
+        }
 
-        new_incr = decode_incr[TODAY](orig_incr);
+        new_incr = decode_incr[network::TODAY](orig_incr);
 
         success = post_incr(new_incr, &cd);
-        if (success)
-            Serial.println("success");
-        else
-            Serial.println("fail");
-
-        Serial.printf("cooldown: %d", cd);
-        Serial.println();
+        if (cd < 0) {
+            Serial.println("failed to post to the server");
+            lcd::print_multi("network error\ncontact staff");
+        }
+        else if (success) {
+            Serial.printf("cooldown: %d", cd);
+            Serial.println();
+            String msg = "success\nCD: ";
+            msg += cd;
+            lcd::print_multi(msg);
+        }
+        else {
+            Serial.printf("cooldown: %d", cd);
+            Serial.println();
+            String msg = "fail\nCD: ";
+            msg += cd;
+            lcd::print_multi(msg);
+        }
+        return cd >= 0 && success;
     }
 }

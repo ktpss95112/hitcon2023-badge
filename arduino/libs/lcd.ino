@@ -75,6 +75,8 @@ namespace lcd {
 
 	bool print_multi(const char *msg) {
 		String line;
+		bool res;
+
 		const int n = strlen(msg);
 
 		for (int i = 0; i < n; ++i) {
@@ -92,10 +94,11 @@ namespace lcd {
 		if (n2 > NCOL)
 			return false;
 
-		print(0, line);
-		print(1, msg + line.length() + 1);
+		clear();
+		res = print(0, line);
+		res &= print(1, msg + line.length() + 1);
 
-		return true;
+		return res;
 	}
 
 	bool print_multi(const String &msg) {
@@ -112,6 +115,14 @@ namespace lcd {
 
 	bool print_multi(const String &msg, int duration) {
 		return print_multi(msg.c_str(), duration);
+	}
+
+	bool alert_multi(const char *msg) {
+		return print_multi(msg, ALERT_DUR);
+	}
+
+	bool alert_multi(const String &msg) {
+		return alert_multi(msg.c_str());
 	}
 
 	bool clear(int row) {

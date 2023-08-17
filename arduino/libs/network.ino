@@ -17,6 +17,7 @@ namespace network {
 
 		wifi_client.setClientRSACert(&client_cert, &client_key);
 		wifi_client.setFingerprint(host_fingerprint);
+		fetch_time();
 	}
 
 	String get_string(const char *path) {
@@ -88,7 +89,14 @@ namespace network {
 	time_t fetch_time() {
 		String datetime_str = get_string(current_time_path);
 		if (datetime_str.length() == 0)
-			return false;
-		return util::str_to_epoch(datetime_str.c_str(), "\"%FT%T");
+			return 0;
+		time_t res = util::str_to_epoch(datetime_str.c_str(), "\"%FT%T");
+		if (res < DAY2_EPOCH)
+			TODAY = 1;
+		else
+			TODAY = 2;
+		Serial.printf("today is %d", TODAY);
+		Serial.println();
+		return res;
 	}
 }

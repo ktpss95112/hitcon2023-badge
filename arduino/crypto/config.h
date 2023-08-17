@@ -2,6 +2,5 @@
 #define _CONFIG_H
 
 #include "master_config.h"
-#define RESET
 
 #endif

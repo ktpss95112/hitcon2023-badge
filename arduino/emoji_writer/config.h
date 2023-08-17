@@ -3,6 +3,4 @@
 
 #include "master_config.h"
 
-#define WRITER
-#define CLOCK_SYNC_INTERVAL 1000
 #endif

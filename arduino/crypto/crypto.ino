@@ -3,6 +3,7 @@
 #include "card.h"
 #include "hmac256.h"
 #include "config.h"
+#include "lcd.h"
 
 namespace crypto {
 	void setup() {
@@ -88,10 +89,10 @@ namespace crypto {
 		return src ^ mask;
 	}
 #else
-#error "define the card reader type in config.h"
+#error "define the card reader type in master_config.h"
 #endif
 
-	void process_card() {
+	bool process_card() {
 		byte hmac[hmac256::HMACSIZE];
 		byte uid[card::UIDSIZE];
 		int data;
@@ -99,23 +100,23 @@ namespace crypto {
 
 		if (card::pread((byte *)&data, sizeof(data), data_off) != sizeof(data)) {
 			Serial.println("Failed reading the data from card");
-			return;
+			return false;
 		}
 
 		if (card::pread(hmac, sizeof(hmac), hmac_off) != sizeof(hmac)) {
 			Serial.println("Failed reading the hmac from card");
-			return;
+			return false;
 		}
 
 		if (!card::read_uid(uid)) {
 			Serial.println("Failed reading the UID from card");
-			return;
+			return false;
 		}
 
 #ifndef RESET
 		if (!hmac256::verify_hmac((byte *)&data, sizeof(data), uid, hmac)) {
 			Serial.println("HMAC verification failed");
-			return;
+			return false;
 		}
 #endif
 
@@ -124,17 +125,18 @@ namespace crypto {
 
 		if (card::pwrite((byte *)&data, sizeof(data), data_off) != sizeof(data)) {
 			Serial.println("Failed writing the data to card");
-			return;
+			return false;
 		}
 
 		if (card::pwrite(hmac, sizeof(hmac), hmac_off) != sizeof(hmac)) {
 			Serial.println("Failed writing the HMAC to card");
-			return;
+			return false;
 		}
 
 		succ_msg = "updated data:\n";
 		succ_msg += String(data, HEX);
-		Serial.printf("data is now %x", data);
+		Serial.printf("data is now 0x%x", data);
 		Serial.println();
+		return true;
 	}
 }

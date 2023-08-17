@@ -8,7 +8,7 @@ namespace crypto {
 	const int hmac_off = data_off + card::BLKSIZE;
 
 	void setup();
-	void process_card();
+	bool process_card();
 }
 
 #endif
