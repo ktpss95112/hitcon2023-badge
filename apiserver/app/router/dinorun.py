@@ -1,8 +1,7 @@
 from datetime import datetime
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException
+from fastapi import APIRouter
 
-from ..dashboard import DinoDict, dashboard
 from ..dependency import DBDep, GetUserDep
 from ..model import DinorunRecord
 
@@ -39,9 +38,7 @@ async def get_record(user: GetUserDep, db: DBDep) -> list[DinorunRecord]:
 @router.post(
     "/{card_uid}",
 )
-async def submit_score(
-    user: GetUserDep, db: DBDep, score: float, bg_task: BackgroundTasks
-) -> bool:
+async def submit_score(user: GetUserDep, db: DBDep, score: float) -> bool:
     """
     The returned boolean indicates whether the submission is successful.
     """
@@ -51,23 +48,4 @@ async def submit_score(
         DinorunRecord(card_uid=user.card_uid, time=datetime.now(), score=score)
     )
 
-    # push to frontend
-    if not dashboard.disabled:
-        score = await db.get_dinorun_score_by_user(user)
-        bg_task.add_task(dashboard.create_or_update_dino, user.card_uid, score)
-
     return True
-
-
-@router.post("/force_push", tags=["dashboard"])
-async def force_push_dinorun_to_dashboard(db: DBDep) -> bool:
-    if dashboard.disabled:
-        raise HTTPException(500, "No dashboard available in server configuration")
-
-    records = await db.get_all_dinorun_score()
-    return dashboard.batch_create_or_update_dinos(
-        [
-            DinoDict(card_uid=card_uid, score=score)
-            for card_uid, score in records.items()
-        ]
-    )
