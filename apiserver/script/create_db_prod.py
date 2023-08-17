@@ -1,5 +1,6 @@
 import argparse
 import asyncio
+import random
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -16,22 +17,27 @@ async def handle_uid_file(db_: db.DB, uid_file: Path):
         await db_.write_user(User(card_uid=uid, name=uid, type=UserType.ATTENDEE))
 
 
-async def handle_reader_file_mock(db_: db.DB):
-    # TODO
+async def handle_reader(db_: db.DB):
+    # fmt: off
+    all_emojis = ['😂', '🤣', '👍', '😭', '🙏', '😘', '🥰', '😍', '😊', '🎉', '😁', '💕', '🥺', '😅', '🔥', '🤦', '🤷', '🙄', '😆', '🤗', '😉', '🎂', '🤔', '👏', '🙂', '😳', '🥳', '😎', '👌', '💜', '😔', '💪', '💖', '👀', '😋', '😏', '😢', '👉', '💗', '😩', '💯', '🌹', '💞', '🎈', '💙', '😃', '💐', '😜', '🙈', '🤞', '😄', '🤤', '🙌', '🤪', '😀', '💋', '💀', '👇', '💔', '😌', '💓', '🤩', '🙃', '😬', '😱', '😴', '🤭', '😐', '🌞', '😒', '😇', '🌸', '😈', '🎶', '🎊', '🥵', '😞', '💚', '🖤', '💰', '😚', '👑', '🎁', '💥', '🙋', '😑', '🥴', '👈', '👋', '🤮', '😤', '🤢', '🌟', '😥', '🌈', '💛', '😝', '😫', '😲', '🔴', '🌻', '🤯', '💃', '👊', '🤬', '🏃', '😕', '🍀', '💦', '🦋', '🤨', '🌺', '😹', '🤘', '🌷', '💝', '💤', '🤝', '🐰', '😓', '💘', '🍻', '😟', '😣', '🧐', '🤠', '😻', '🌙', '😛', '🤙', '🙊', '🧡', '🤡', '🤫', '🌼', '🥂', '😷', '🤓', '🥶', '😶', '😖', '🎵', '🚶', '😙', '🍆', '🤑', '💅', '😗', '🐶', '🍓', '👅', '👄', '🌿', '🚨', '📣', '🤟', '🍑', '🍃', '😮', '💎', '📢', '🌱', '🙁', '🍷', '😪', '🌚', '🏆', '🍒', '💉', '🛒', '😸', '🐾', '👎', '🚀', '🎯', '🍺', '📌', '📷', '🙇', '💨', '🍕', '🏠', '📸', '🐇', '🚩', '😰', '👶', '🌊', '🐕', '💫', '😵', '🎤', '🏡', '🥀', '🤧', '🍾', '🍰', '🍁', '🤲', '👆', '😯', '💌', '💸', '🧁', '🕺', '😺', '💧', '💣', '🤐', '🍎', '🐷', '🐥', '💁', '📍', '🎀', '🙅', '🥇', '🌝', '🔫', '🐱', '🐣', '🎧', '💟', '👹', '💍', '🍼', '💡', '😽', '🍊', '😨', '🍫', '🧢', '🤕', '🎼', '🐻', '📲', '👻', '🧚', '🌮', '🍭', '🐟', '🐸', '🐝', '🐈', '🔵', '😧', '🌄', '😾', '🤸', '📱', '🍇', '🌴', '🐢', '🌃', '👽', '🍌', '📺', '👐', '🔔', '🌅', '🦄', '🎥', '🍋', '🥚', '💲', '📚', '🐔', '🎸', '🥃', '😿', '🚗', '🌎', '🔊', '🦅', '🚿', '🦆', '🍉', '🍬', '🧸', '🍨', '📝', '🤚', '📩', '💵', '👼', '💭', '🌍', '👧', '🤜', '🍿', '🧿', '🏀', '🍏', '🌳', '🙉', '😦', '🤰', '🍹', '🍦', '🛑', '🧘', '🍔', '🍂', '🐒', '🍪', '🙀', '🍗', '🌠', '🎬', '🌵', '🍄', '🐐', '🍩', '🦁', '🙆', '📞', '👸', '🍅', '🐍', '👦', '💬', '🥤', '😼', '🌾', '🧀', '🎮', '🧠', '🌏', '🛌', '🔝', '🌉', '🤛', '🤒', '👗', '🌲', '🍜', '🐦', '🍯', '👮', '🏅', '🐼', '💄', '👺', '🎆', '🎨', '🍞', '🎇', '🦜', '🐑', '🐙', '🦍', '🔗', '📖', '🔹', '🥓', '🥒', '🍸', '🥧', '💻', '🐖', '📈', '💊', '👩', '🌀', '💆', '🥩', '🎄', '🌽', '🤥', '🐎', '🆘', '💏', '🥕', '🔮', '🦀', '🐠', '🌛', '👠', '🐓', '🥊', '🛐', '🚬', '🔰', '🌜', '🍴', '🥔', '🎓', '👙', '🗿', '🥑', '👯', '🍍', '🏁', '👂', '🦊', '👃', '🦖', '🐴', '🎃', '🦠', '🌕', '📦', '🌌', '🍧', '🍟', '🎹', '🥞', '👣', '🥜', '🍡', '🦷', '🚴', '🍝', '🎻', '🐊', '🍖', '🐺', '🐽', '🚮', '🍵', '🌭', '🐄', '🥁', '🍳', '👫', '🔆', '🐳', '🌯', '🦴', '🥪', '🦃', '🎣', '🔻', '🐀', '🐬', '🍚', '🤖', '🐧', '🦈', '🏄', '🏈', '🧬', '🌐', '🔍', '📴', '🥦', '🐯', '📮', '🥛', '🥭', '🖖', '🐛', '🦞', '🐤', '🧟', '🍤', '🦐', '🎭', '🐞', '🐵', '🍣', '🥗', '🆔', '🔑', '👴', '🤴', '👵', '🤳', '🧨', '👤', '🎩', '🔙', '🥫', '🆕', '🥐', '👰', '💳', '🐚', '🌆', '🆗', '🤱', '👭', '🦇', '👨', '🦗', '🦕', '🏹', '🐮', '🚲', '💑']
+    # fmt: on
+    random.seed("chiffoncake")
+
+    remo = lambda: random.choice(all_emojis)
 
     # fmt: off
     readers = (
-        CardReader(id='s1', name='s1', type=CardReaderType.SPONSOR, time_emoji=[(datetime.min, '👍')] + [(datetime(2023, 8, 18, 9, 0, 0) + i * timedelta(minutes=10), '👍') for i in range(7 * 6)] + [(datetime(2023, 8, 19, 9, 0, 0) + i * timedelta(minutes=10), '👍') for i in range(7 * 6)]),
-        CardReader(id='s2', name='s2', type=CardReaderType.SPONSOR, time_emoji=[(datetime.min, '👍')] + [(datetime(2023, 8, 18, 9, 0, 0) + i * timedelta(minutes=10), '👍') for i in range(7 * 6)] + [(datetime(2023, 8, 19, 9, 0, 0) + i * timedelta(minutes=10), '👍') for i in range(7 * 6)]),
-        CardReader(id='s3', name='s3', type=CardReaderType.SPONSOR, time_emoji=[(datetime.min, '👍')] + [(datetime(2023, 8, 18, 9, 0, 0) + i * timedelta(minutes=10), '👍') for i in range(7 * 6)] + [(datetime(2023, 8, 19, 9, 0, 0) + i * timedelta(minutes=10), '👍') for i in range(7 * 6)]),
-        CardReader(id='s4', name='s4', type=CardReaderType.SPONSOR, time_emoji=[(datetime.min, '👍')] + [(datetime(2023, 8, 18, 9, 0, 0) + i * timedelta(minutes=10), '👍') for i in range(7 * 6)] + [(datetime(2023, 8, 19, 9, 0, 0) + i * timedelta(minutes=10), '👍') for i in range(7 * 6)]),
-        CardReader(id='s5', name='s5', type=CardReaderType.SPONSOR, time_emoji=[(datetime.min, '👍')] + [(datetime(2023, 8, 18, 9, 0, 0) + i * timedelta(minutes=10), '👍') for i in range(7 * 6)] + [(datetime(2023, 8, 19, 9, 0, 0) + i * timedelta(minutes=10), '👍') for i in range(7 * 6)]),
-        CardReader(id='s6', name='s6', type=CardReaderType.SPONSOR, time_emoji=[(datetime.min, '👍')] + [(datetime(2023, 8, 18, 9, 0, 0) + i * timedelta(minutes=10), '👍') for i in range(7 * 6)] + [(datetime(2023, 8, 19, 9, 0, 0) + i * timedelta(minutes=10), '👍') for i in range(7 * 6)]),
-        CardReader(id='s7', name='s7', type=CardReaderType.SPONSOR, time_emoji=[(datetime.min, '👍')] + [(datetime(2023, 8, 18, 9, 0, 0) + i * timedelta(minutes=10), '👍') for i in range(7 * 6)] + [(datetime(2023, 8, 19, 9, 0, 0) + i * timedelta(minutes=10), '👍') for i in range(7 * 6)]),
-        CardReader(id='s8', name='s8', type=CardReaderType.SPONSOR, time_emoji=[(datetime.min, '👍')] + [(datetime(2023, 8, 18, 9, 0, 0) + i * timedelta(minutes=10), '👍') for i in range(7 * 6)] + [(datetime(2023, 8, 19, 9, 0, 0) + i * timedelta(minutes=10), '👍') for i in range(7 * 6)]),
-        CardReader(id='s9', name='s9', type=CardReaderType.SPONSOR, time_emoji=[(datetime.min, '👍')] + [(datetime(2023, 8, 18, 9, 0, 0) + i * timedelta(minutes=10), '👍') for i in range(7 * 6)] + [(datetime(2023, 8, 19, 9, 0, 0) + i * timedelta(minutes=10), '👍') for i in range(7 * 6)]),
-        CardReader(id='s10', name='s10', type=CardReaderType.SPONSOR, time_emoji=[(datetime.min, '👍')] + [(datetime(2023, 8, 18, 9, 0, 0) + i * timedelta(minutes=10), '👍') for i in range(7 * 6)] + [(datetime(2023, 8, 19, 9, 0, 0) + i * timedelta(minutes=10), '👍') for i in range(7 * 6)]),
-        CardReader(id='s11', name='s11', type=CardReaderType.SPONSOR, time_emoji=[(datetime.min, '👍')] + [(datetime(2023, 8, 18, 9, 0, 0) + i * timedelta(minutes=10), '👍') for i in range(7 * 6)] + [(datetime(2023, 8, 19, 9, 0, 0) + i * timedelta(minutes=10), '👍') for i in range(7 * 6)]),
+        CardReader(id='s1', name='s1', type=CardReaderType.SPONSOR, time_emoji=[(datetime.min, remo())] + [(datetime(2023, 8, 18, 9, 0, 0) + i * timedelta(minutes=10), remo()) for i in range(7 * 6)] + [(datetime(2023, 8, 19, 9, 0, 0) + i * timedelta(minutes=10), remo()) for i in range(7 * 6)]),
+        CardReader(id='s2', name='s2', type=CardReaderType.SPONSOR, time_emoji=[(datetime.min, remo())] + [(datetime(2023, 8, 18, 9, 0, 0) + i * timedelta(minutes=10), remo()) for i in range(7 * 6)] + [(datetime(2023, 8, 19, 9, 0, 0) + i * timedelta(minutes=10), remo()) for i in range(7 * 6)]),
+        CardReader(id='s3', name='s3', type=CardReaderType.SPONSOR, time_emoji=[(datetime.min, remo())] + [(datetime(2023, 8, 18, 9, 0, 0) + i * timedelta(minutes=10), remo()) for i in range(7 * 6)] + [(datetime(2023, 8, 19, 9, 0, 0) + i * timedelta(minutes=10), remo()) for i in range(7 * 6)]),
+        CardReader(id='s4', name='s4', type=CardReaderType.SPONSOR, time_emoji=[(datetime.min, remo())] + [(datetime(2023, 8, 18, 9, 0, 0) + i * timedelta(minutes=10), remo()) for i in range(7 * 6)] + [(datetime(2023, 8, 19, 9, 0, 0) + i * timedelta(minutes=10), remo()) for i in range(7 * 6)]),
+        CardReader(id='s5', name='s5', type=CardReaderType.SPONSOR, time_emoji=[(datetime.min, remo())] + [(datetime(2023, 8, 18, 9, 0, 0) + i * timedelta(minutes=10), remo()) for i in range(7 * 6)] + [(datetime(2023, 8, 19, 9, 0, 0) + i * timedelta(minutes=10), remo()) for i in range(7 * 6)]),
+        CardReader(id='s6', name='s6', type=CardReaderType.SPONSOR, time_emoji=[(datetime.min, remo())] + [(datetime(2023, 8, 18, 9, 0, 0) + i * timedelta(minutes=10), remo()) for i in range(7 * 6)] + [(datetime(2023, 8, 19, 9, 0, 0) + i * timedelta(minutes=10), remo()) for i in range(7 * 6)]),
+        CardReader(id='s7', name='s7', type=CardReaderType.SPONSOR, time_emoji=[(datetime.min, remo())] + [(datetime(2023, 8, 18, 9, 0, 0) + i * timedelta(minutes=10), remo()) for i in range(7 * 6)] + [(datetime(2023, 8, 19, 9, 0, 0) + i * timedelta(minutes=10), remo()) for i in range(7 * 6)]),
+        CardReader(id='s8', name='s8', type=CardReaderType.SPONSOR, time_emoji=[(datetime.min, remo())] + [(datetime(2023, 8, 18, 9, 0, 0) + i * timedelta(minutes=10), remo()) for i in range(7 * 6)] + [(datetime(2023, 8, 19, 9, 0, 0) + i * timedelta(minutes=10), remo()) for i in range(7 * 6)]),
+        CardReader(id='s9', name='s9', type=CardReaderType.SPONSOR, time_emoji=[(datetime.min, remo())] + [(datetime(2023, 8, 18, 9, 0, 0) + i * timedelta(minutes=10), remo()) for i in range(7 * 6)] + [(datetime(2023, 8, 19, 9, 0, 0) + i * timedelta(minutes=10), remo()) for i in range(7 * 6)]),
+        CardReader(id='s10', name='s10', type=CardReaderType.SPONSOR, time_emoji=[(datetime.min, remo())] + [(datetime(2023, 8, 18, 9, 0, 0) + i * timedelta(minutes=10), remo()) for i in range(7 * 6)] + [(datetime(2023, 8, 19, 9, 0, 0) + i * timedelta(minutes=10), remo()) for i in range(7 * 6)]),
+        CardReader(id='s11', name='s11', type=CardReaderType.SPONSOR, time_emoji=[(datetime.min, remo())] + [(datetime(2023, 8, 18, 9, 0, 0) + i * timedelta(minutes=10), remo()) for i in range(7 * 6)] + [(datetime(2023, 8, 19, 9, 0, 0) + i * timedelta(minutes=10), remo()) for i in range(7 * 6)]),
         CardReader(id='sf1', name='sf1', type=CardReaderType.SPONSOR_FLUSH),
         CardReader(id='p1', name='p1', type=CardReaderType.POPCAT),
         CardReader(id='p2', name='p2', type=CardReaderType.POPCAT),
@@ -54,20 +60,17 @@ async def main():
     )
 
     parser.add_argument("uid_file", help="user uid file, one uid (hex) per line")
-    # parser.add_argument("reader_file", help="reader file")
 
     args = parser.parse_args()
 
     uid_file = Path(args.uid_file)
-    # reader_file = Path(args.reader_file)
 
     db.connect_db()
     db_ = await db.get_db()
     await db_.drop_all()
 
     await handle_uid_file(db_, uid_file)
-    await handle_reader_file_mock(db_)
-    # handle_reader_file(db_, reader_file)
+    await handle_reader(db_)
 
 
 if __name__ == "__main__":
