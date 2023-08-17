@@ -7,6 +7,8 @@ namespace lcd {
 	static const int NROW = 2;
 	static const int NCOL = 16;
 
+	static const int ALERT_DUR = 2000;
+
 	LiquidCrystal_I2C lcd(0x27,16,2);
 
 	uint8_t custom_chars[][8] {
@@ -31,6 +33,8 @@ namespace lcd {
 	bool print_multi(const String &msg);
 	bool print_multi(const char *msg, int duration);
 	bool print_multi(const String &msg, int duration);
+	bool alert_multi(const char *msg);
+	bool alert_multi(const String &msg);
 	bool clear();
 	bool clear(int row);
 	bool write(int chr);

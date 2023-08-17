@@ -7,6 +7,7 @@
 #include "network.h"
 #include "util.h"
 #include "config.h"
+#include "lcd.h"
 
 namespace emoji_writer {
 	static void push_one_emoji(const JsonVariant &doc) {
@@ -28,18 +29,28 @@ namespace emoji_writer {
 	}
 
 	static bool read_timetable() {
-		int i, n;
-		DynamicJsonDocument doc(1024);
-		if (!network::get_json(doc, emoji_timetable_path))
-			return false;
+		int i, n, part;
 
-		n = doc.size();
-		/*
-		 * Since the timetable in the server is in ascending order,
-		 * we reverse it here so the head is the earliest entry.
-		 */
-		for (i = n-1; i >= 0; --i)
-			push_one_emoji(doc[i]);
+		for (part = 3; part >= 0; --part) {
+			DynamicJsonDocument doc(1024);
+			String path = emoji_timetable_path;
+			path += "/day/";
+			path += network::TODAY;
+			path += "/part/";
+			path += part;
+			Serial.println(path);
+			if (!network::get_json(doc, path.c_str())) {
+				return false;
+			}
+
+			n = doc.size();
+			/*
+			* Since the timetable in the server is in ascending order,
+			* we reverse it here so the head is the earliest entry.
+			*/
+			for (i = n-1; i >= 0; --i)
+				push_one_emoji(doc[i]);
+		}
 		return true;
 	}
 
@@ -72,11 +83,13 @@ namespace emoji_writer {
 
 	void setup() {
 		if (!sync_clock()) {
+			lcd::print_multi("clock error\ncontact staff");
 			Serial.println("clock synchronization failed");
 			return;
 		}
 #ifdef WRITER
 		if (!read_timetable()) {
+			lcd::print_multi("network error\ncontact staff");
 			Serial.println("time table read failed");
 			return;
 		}
@@ -99,11 +112,12 @@ namespace emoji_writer {
 		Serial.println(emoji_timetable_head->emoji);
 	}
 
-	static void write_card() {
+	static bool write_card() {
 		int cur_len = get_cur_len();
 		if (cur_len < 0) {
 			Serial.println("failed to read the current length");
-			return;
+			lcd::print_multi("card error\ncontact staff");
+			return false;
 		}
 		Serial.printf("current len: %d", cur_len);
 		Serial.println();
@@ -111,39 +125,47 @@ namespace emoji_writer {
 		String &cur_emoji = emoji_timetable_head->emoji;
 		int emoji_len = cur_emoji.length();
 		if (cur_len + emoji_len >= capacity) {
-			/* TODO: perhaps beep in a different tone */
 			Serial.println("buffer is full");
-			return;
+			lcd::print_multi("buffer full\nflush first");
+			return false;
 		}
 		int res = card::pwrite((byte *)cur_emoji.c_str(), emoji_len, cur_len);
 		if (res != emoji_len) {
 			Serial.println("failed to append emoji");
-			return;
+			lcd::print_multi("card error\ncontact staff");
+			return false;
 		}
 		cur_len += emoji_len;
 		res = card::pwrite((byte *)&cur_len, sizeof(int), strlen_off);
 		if (res != sizeof(int)) {
 			Serial.println("failed to update the new length");
-			return;
+			lcd::print_multi("card error\ncontact staff");
+			return false;
 		}
+
+		Serial.println("about to write card");
+		return true;
 	}
 
-	static void erase_card() {
+	static bool erase_card() {
 		int zero = 0;
 		int res = card::pwrite((byte *)&zero, sizeof(int), strlen_off);
 		if (res != sizeof(int)) {
 			Serial.println("failed to erase the card");
-			return;
+			lcd::print_multi("card error\ncontact staff");
+			return false;
 		}
 		Serial.println("erase successful");
+		return true;
 	}
 
-	static void flush_card() {
+	static bool flush_card() {
 		byte data[capacity];
 		int cur_len = get_cur_len();
 		if (cur_len < 0) {
 			Serial.println("failed to read the current length");
-			return;
+			lcd::print_multi("card error\ncontact staff");
+			return false;
 		}
 		Serial.printf("length: %d", cur_len);
 		Serial.println();
@@ -151,7 +173,8 @@ namespace emoji_writer {
 		int res = card::pread(data, cur_len, 0);
 		if (res != cur_len) {
 			Serial.println("failed to read the emoji list");
-			return;
+			lcd::print_multi("card error\ncontact staff");
+			return false;
 		}
 		data[cur_len] = '\0';
 		Serial.printf("data:");
@@ -163,7 +186,8 @@ namespace emoji_writer {
 		res = card::read_uid(uid);
 		if (!res) {
 			Serial.println("failed to read the UID");
-			return;
+			lcd::print_multi("card error\ncontact staff");
+			return false;
 		}
 
 		String path = flush_path;
@@ -179,43 +203,48 @@ namespace emoji_writer {
 		doc["show"] = true;
 		if (!network::post_json(doc, path.c_str())) {
 			Serial.println("failed to post the emoji");
-			return;
+			lcd::print_multi("network error\ncontact staff");
+			return false;
 		}
-		erase_card();
+		return erase_card();
 	}
 
-	static void writer_loop() {
-		if (!card::legal_new_card())
-			return;
+	static bool writer_process() {
+		bool res;
+
 		clock_housekeeping();
 		timetable_housekeeping();
-		write_card();
+		res = write_card();
 		card::done();
+
+		return res;
 	}
 
-	static void eraser_loop() {
-		if (!card::legal_new_card())
-			return;
-		erase_card();
+	static bool eraser_process() {
+		bool res;
+		res = erase_card();
 		card::done();
+		return res;
 	}
 
-	static void flusher_loop() {
-		if (!card::legal_new_card())
-			return;
-		flush_card();
+	static bool flusher_process() {
+		bool res;
+		res = flush_card();
 		card::done();
+		return res;
 	}
 
-	void loop() {
+	bool process_card() {
+		bool res;
 #ifdef WRITER
-		writer_loop();
+		res = writer_process();
 #elif defined ERASER
-		eraser_loop();
+		res = eraser_process();
 #elif defined FLUSHER
-		flusher_loop();
+		res = flusher_process();
 #else
 #error "please specify the card reader type"
 #endif
+	return res;
 	}
 }

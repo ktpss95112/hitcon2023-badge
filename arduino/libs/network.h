@@ -24,6 +24,10 @@ namespace network {
 
 	const char *current_time_path = "/time";
 
+	// epoch of the second day, 19 Aug 00:00 CST
+	const time_t DAY2_EPOCH = 1692374400;
+	int TODAY;
+
 	void setup();
 	time_t fetch_time();
 	String get_string(const char *path);

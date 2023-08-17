@@ -31,7 +31,7 @@ namespace emoji_writer {
 	std::shared_ptr<emoji_timetable> emoji_timetable_head = NULL;
 
 	void setup();
-	void loop();
+	bool process_card();
 }
 
 #endif
