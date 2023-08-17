@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import datetime
 
 
 @dataclass
@@ -20,6 +21,11 @@ class Config:
     SERIAL_PORT = "/dev/ttyUSB0"
     SERIAL_BAUDRATE = 9600
 
+    DAY1_START_TIME = datetime(2023, 8, 18, 0, 0, 0)
+    DAY1_END_TIME = datetime(2023, 8, 19, 0, 0, 0)
+    DAY2_START_TIME = datetime(2023, 8, 19, 0, 0, 0)
+    DAY2_END_TIME = datetime(2023, 8, 20, 0, 0, 0)
+
     # fmt: off
     EMOJI_CHUNKS = ( # (i_sector, i_block, i_chunk)
         (0, 1, 0), (0, 1, 1), (0, 1, 2), (0, 1, 3),
@@ -37,6 +43,9 @@ class Config:
         (4, 1, 0), (4, 1, 1), (4, 1, 2), (4, 1, 3),
         (4, 2, 0), (4, 2, 1), (4, 2, 2),
     )
+
+    POPCAT_DAY1_CHUNK = (7, 0, 0)
+    POPCAT_DAY2_CHUNK = (7, 0, 1)
     # fmt: on
     EMOJI_SIZE_CHUNK = (4, 2, 3)
 
