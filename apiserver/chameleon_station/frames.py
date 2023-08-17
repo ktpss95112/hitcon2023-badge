@@ -640,7 +640,7 @@ class _EditorGameInspectorFrame(ttk.Frame):
         self.__popcat_inspector_frame = _EditorGamePopcatFrame(
             self, hex_view_frame=hex_view_frame
         )
-        self.__emoji_inspector_frame.grid(column=0, row=1, sticky=(N, E, W))
+        self.__popcat_inspector_frame.grid(column=0, row=1, sticky=(N, E, W))
 
         command_frame._set_scan_card_callback(self._scan_card_callback)
 
