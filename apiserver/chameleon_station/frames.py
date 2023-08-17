@@ -1,5 +1,6 @@
 import struct
 from collections import UserString
+from datetime import datetime
 from tkinter import *
 from tkinter import font as tkFont
 from tkinter import ttk
@@ -636,6 +637,11 @@ class _EditorGameInspectorFrame(ttk.Frame):
         self.__emoji_inspector_frame["padding"] = 5
         self.__emoji_inspector_frame.grid(column=0, row=0, sticky=(N, E, W))
 
+        self.__popcat_inspector_frame = _EditorGamePopcatFrame(
+            self, hex_view_frame=hex_view_frame
+        )
+        self.__emoji_inspector_frame.grid(column=0, row=1, sticky=(N, E, W))
+
         command_frame._set_scan_card_callback(self._scan_card_callback)
 
     def _scan_card_callback(self, data: bytes, success: bool):
@@ -728,6 +734,27 @@ Field: Content = {emoji_str}
         if success:
             self.__setup_emoji_tags()
             self.__update_emoji_label()
+
+
+class _EditorGamePopcatFrame(ttk.Frame):
+    def __init__(self, parent: Misc, hex_view_frame: _EditorHexViewFrame):
+        super().__init__(parent)
+        self.__hex_view_frame = hex_view_frame
+
+        tag_name = "popcat_highlight"
+        self.__hex_view_frame._text.tag_configure(tag_name, background="orchid")
+
+        # highlight determined by date
+        now = datetime.now()
+        if config.DAY1_START_TIME <= now < config.DAY1_END_TIME:
+            chunk_tag = ChunkTag(*config.POPCAT_DAY1_CHUNK)
+            start, end, *_ = self.__hex_view_frame._text.tag_ranges(chunk_tag)
+            self.__hex_view_frame._text.tag_add(tag_name, start, end)
+        elif config.DAY2_START_TIME <= now < config.DAY2_END_TIME:
+            chunk_tag = ChunkTag(*config.POPCAT_DAY2_CHUNK)
+            start, end, *_ = self.__hex_view_frame._text.tag_ranges(chunk_tag)
+            self.__hex_view_frame._text.tag_add(tag_name, start, end)
+        self.__hex_view_frame._text.tag_lower(tag_name)
 
 
 class _EditorNotebookFrame(ttk.LabelFrame):
