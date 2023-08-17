@@ -63,6 +63,7 @@ async def main():
 
     db.connect_db()
     db_ = await db.get_db()
+    await db_.drop_all()
 
     await handle_uid_file(db_, uid_file)
     await handle_reader_file_mock(db_)
