@@ -642,11 +642,18 @@ class _EditorGameInspectorFrame(ttk.Frame):
         )
         self.__popcat_inspector_frame.grid(column=0, row=1, sticky=(N, E, W))
 
+        self.__crypto_inspector_frame = _EditorGameCryptoFrame(
+            self, hex_view_frame=hex_view_frame
+        )
+        self.__crypto_inspector_frame.grid(column=0, row=2, sticky=(N, E, W))
+
         command_frame._set_scan_card_callback(self._scan_card_callback)
 
     def _scan_card_callback(self, data: bytes, success: bool):
         if success:
             self.__emoji_inspector_frame._scan_card_callback(data, success)
+            self.__popcat_inspector_frame._scan_card_callback(data, success)
+            self.__crypto_inspector_frame._scan_card_callback(data, success)
 
 
 class _EditorGameEmojiInspectorFrame(ttk.LabelFrame):
@@ -740,7 +747,9 @@ class _EditorGamePopcatFrame(ttk.Frame):
     def __init__(self, parent: Misc, hex_view_frame: _EditorHexViewFrame):
         super().__init__(parent)
         self.__hex_view_frame = hex_view_frame
+        self.__set_highlight()
 
+    def __set_highlight(self):
         tag_name = "popcat_highlight"
         self.__hex_view_frame._text.tag_configure(tag_name, background="orchid")
 
@@ -755,6 +764,38 @@ class _EditorGamePopcatFrame(ttk.Frame):
             start, end, *_ = self.__hex_view_frame._text.tag_ranges(chunk_tag)
             self.__hex_view_frame._text.tag_add(tag_name, start, end)
         self.__hex_view_frame._text.tag_lower(tag_name)
+
+    def _scan_card_callback(self, data: bytes, success: bool):
+        self.__set_highlight()
+
+
+class _EditorGameCryptoFrame(ttk.Frame):
+    def __init__(self, parent: Misc, hex_view_frame: _EditorHexViewFrame):
+        super().__init__(parent)
+        self.__hex_view_frame = hex_view_frame
+        self.__set_highlight()
+
+    def __set_highlight(self):
+        tag_name_num = "crypto_num_highlight"
+        self.__hex_view_frame._text.tag_configure(tag_name_num, background="salmon")
+
+        tag_name_hmac = "crypto_hmac_highlight"
+        self.__hex_view_frame._text.tag_configure(tag_name_hmac, background="gray80")
+
+        chunk_tag = ChunkTag(*config.CRYPTO_NUM_CHUNK)
+        start, end, *_ = self.__hex_view_frame._text.tag_ranges(chunk_tag)
+        self.__hex_view_frame._text.tag_add(tag_name_num, start, end)
+
+        for chunk in config.CRYPTO_HMAC_CHUNK:
+            chunk_tag = ChunkTag(*chunk)
+            start, end, *_ = self.__hex_view_frame._text.tag_ranges(chunk_tag)
+            self.__hex_view_frame._text.tag_add(tag_name_hmac, start, end)
+
+        self.__hex_view_frame._text.tag_lower(tag_name_num)
+        self.__hex_view_frame._text.tag_lower(tag_name_hmac)
+
+    def _scan_card_callback(self, data: bytes, success: bool):
+        self.__set_highlight()
 
 
 class _EditorNotebookFrame(ttk.LabelFrame):
