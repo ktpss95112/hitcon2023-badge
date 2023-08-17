@@ -43,11 +43,17 @@ class Config:
         (4, 1, 0), (4, 1, 1), (4, 1, 2), (4, 1, 3),
         (4, 2, 0), (4, 2, 1), (4, 2, 2),
     )
+    EMOJI_SIZE_CHUNK = (4, 2, 3)
 
     POPCAT_DAY1_CHUNK = (7, 0, 0)
     POPCAT_DAY2_CHUNK = (7, 0, 1)
+
+    CRYPTO_NUM_CHUNK = (6, 0, 0)
+    CRYPTO_HMAC_CHUNK = (
+        (6, 1, 0), (6, 1, 1), (6, 1, 2), (6, 1, 3),
+        (6, 2, 0), (6, 2, 1), (6, 2, 2), (6, 2, 3),
+    )
     # fmt: on
-    EMOJI_SIZE_CHUNK = (4, 2, 3)
 
 
 config = Config()
