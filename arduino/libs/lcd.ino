@@ -75,7 +75,7 @@ namespace lcd {
 
 	bool print_multi(const char *msg) {
 		String line;
-		bool res;
+		bool res = true;
 
 		const int n = strlen(msg);
 
@@ -87,16 +87,16 @@ namespace lcd {
 
 		const int n1 = line.length(), n2 = n - n1 - 1;
 
-		if (n1 == n)
-			return false;
 		if (n1 > NCOL)
 			return false;
 		if (n2 > NCOL)
 			return false;
 
 		clear();
-		res = print(0, line);
-		res &= print(1, msg + line.length() + 1);
+		if (n1)
+			res &= print(0, line);
+		if (n2)
+			res &= print(1, msg + line.length() + 1);
 
 		return res;
 	}
