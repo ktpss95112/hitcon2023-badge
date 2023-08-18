@@ -805,8 +805,8 @@
             // Reset the time clock.
             this.time = getTimeStamp();
 
-            // inject function
-            if (window.gameOver) window.gameOver(this.distanceRan);
+            // inject function, old score * 0.025
+            if (window.gameOver) window.gameOver(this.distanceMeter.getActualDistance(this.distanceRan));
         },
 
         stop: function () {
