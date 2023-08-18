@@ -198,7 +198,7 @@ namespace emoji_writer {
 		Serial.println(util::bytes_to_str(uid, card::UIDSIZE));
 
 		/* The *3 is just an approximation. */
-		DynamicJsonDocument doc(cur_len * 3);
+		DynamicJsonDocument doc(5*cur_len+30);
 		doc["emoji_list"] = String((char *)data);
 		doc["show"] = true;
 		if (!network::post_json(doc, path.c_str())) {
