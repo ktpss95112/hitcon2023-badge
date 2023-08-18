@@ -78,6 +78,11 @@ class CommandFrame(ttk.LabelFrame):
         self.__clear_emoji_button.grid(column=2, row=0)
         self.__clear_emoji_button.state(["disabled"])
 
+        self.__clear_emoji_button = ttk.Button(self)
+        self.__clear_emoji_button["text"] = "Clear Screen"
+        self.__clear_emoji_button["command"] = self._command_clear_screen
+        self.__clear_emoji_button.grid(column=3, row=0)
+
         self.__scan_card_callback: list[Callable] = []
         self._set_scan_card_callback(self.__change_button_state)
 
@@ -152,6 +157,13 @@ class CommandFrame(ttk.LabelFrame):
     def _command_clear_emoji_buffer(self):
         card.clear_emoji_buffer(self.data)
         self._command_scan_card()
+
+    def _command_clear_screen(self):
+        self.data = ""
+        for callback in self.__scan_card_callback:
+            callback("", True)
+
+        self.__show_qrcode_button.state(["disabled"])
 
 
 class ProgressWindow(Toplevel):
