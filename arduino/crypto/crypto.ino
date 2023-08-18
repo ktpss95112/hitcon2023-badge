@@ -1,4 +1,5 @@
 #include "crypto.h"
+#include "network.h"
 #include "util.h"
 #include "card.h"
 #include "hmac256.h"
@@ -93,6 +94,10 @@ namespace crypto {
 #endif
 
 	bool process_card() {
+		return process_card(true);
+	}
+
+	bool process_card(bool send_tap_record) {
 		byte hmac[hmac256::HMACSIZE];
 		byte uid[card::UIDSIZE];
 		int data;
@@ -139,13 +144,15 @@ namespace crypto {
 		Serial.println();
 
 		// true / false only
-		DynamicJsonDocument doc(0x10);
-		String path = tap_record_path;
-		path += reader_id;
-		path += "/user/"
-		path += util::bytes_to_str(uid, card::UIDSIZE);
-		if (!network::post_json(doc, path.c_str())) {
-			return false;
+		if (send_tap_record) {
+			DynamicJsonDocument doc(0x10);
+			String path = tap_record_path;
+			path += GAME_READER_ID;
+			path += "/user/";
+			path += util::bytes_to_str(uid, card::UIDSIZE);
+			if (!network::post_json(doc, path.c_str())) {
+				return false;
+			}
 		}
 		return true;
 	}

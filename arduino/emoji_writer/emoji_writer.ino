@@ -166,6 +166,10 @@ namespace emoji_writer {
 			Serial.println("failed to read the current length");
 			lcd::print_multi("card error\ncontact staff");
 			return false;
+		} else if (cur_len == 0) {
+			Serial.println("cur_len is 0, nothing to flush");
+			lcd::print_multi("Empty buffer,\nflush nothing");
+			return false;
 		}
 		Serial.printf("length: %d", cur_len);
 		Serial.println();
@@ -206,7 +210,16 @@ namespace emoji_writer {
 			lcd::print_multi("network error\ncontact staff");
 			return false;
 		}
-		return erase_card();
+
+		if (!erase_card()) {
+			Serial.println("failed to erase card");
+			lcd::print_multi("card error\ncontact staff");
+			return false;
+		}
+
+		Serial.println("success on flushing emoji buffer");
+		lcd::print_multi("Success");
+		return true;
 	}
 
 	static bool writer_process() {
@@ -217,7 +230,26 @@ namespace emoji_writer {
 		res = write_card();
 		card::done();
 
-		return res;
+		if (!res) {
+			return false;
+		}
+
+		// record tap
+		byte uid[card::UIDSIZE];
+		res = card::read_uid(uid);
+		if (!res) {
+			Serial.println("failed to read the UID");
+			lcd::print_multi("card error\ncontact staff");
+			return false;
+		}
+
+		// true / false only
+		DynamicJsonDocument doc(0x10);
+		String path = tap_record_path;
+		path += reader_id;
+		path += "/user/";
+		path += util::bytes_to_str(uid, card::UIDSIZE);
+		return network::post_json(doc, path.c_str());
 	}
 
 	static bool eraser_process() {
@@ -245,28 +277,6 @@ namespace emoji_writer {
 #else
 #error "please specify the card reader type"
 #endif
-		if (!res) {
-			// error! return directly
-			return res;
-		}
-		// record tap
-		byte uid[card::UIDSIZE];
-		res = card::read_uid(uid);
-		if (!res) {
-			Serial.println("failed to read the UID");
-			lcd::print_multi("card error\ncontact staff");
-			return false;
-		}
-		
-		// true / false only
-		DynamicJsonDocument doc(0x10);
-		String path = tap_record_path;
-		path += reader_id;
-		path += "/user/"
-		path += util::bytes_to_str(uid, card::UIDSIZE);
-		if (!network::post_json(doc, path.c_str())) {
-			return false;
-		}
-		return true;
+		return res;
 	}
 }
