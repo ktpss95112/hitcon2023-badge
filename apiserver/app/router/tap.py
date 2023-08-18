@@ -113,7 +113,9 @@ async def tap_sponsor_flush_emoji(
 
 @router.post(
     "/crypto/{reader_id}/user/{card_uid}",
-    dependencies=[CheckCardReaderTypeDep(CardReaderType.CRYPTO)],
+    dependencies=[
+        CheckCardReaderTypeDep(CardReaderType.SPONSOR, CardReaderType.CRYPTO)
+    ],  # TODO: sponsor reader has the functionality only works under the settings of HITCON 2023. Change the schema of reader so that reader.type holds a list instead of a single type.
     tags=["crypto"],
 )
 @user_add_record
