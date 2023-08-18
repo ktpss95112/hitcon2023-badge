@@ -11,6 +11,7 @@ namespace crypto {
 
 	void setup();
 	bool process_card();
+	bool process_card(bool);
 }
 
 #endif

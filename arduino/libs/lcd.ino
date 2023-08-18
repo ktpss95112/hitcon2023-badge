@@ -3,7 +3,7 @@
 namespace lcd {
 	static void create_custom_chars() {
 		int i = 0;
-		
+
 		for (uint8_t (&chr)[8]: custom_chars) {
 			lcd.createChar(i, chr);
 			++i;
@@ -12,7 +12,7 @@ namespace lcd {
 
 	void setup() {
 		lcd.init();
-		lcd.clear();         
+		lcd.clear();
 		lcd.backlight();
 		create_custom_chars();
 	}
@@ -35,7 +35,7 @@ namespace lcd {
 		len = msg.length();
 		if (len > NCOL)
 			return false;
-		
+
 		lcd.setCursor(0, row);
 		lcd.print(msg);
 		return true;
@@ -154,7 +154,7 @@ namespace lcd {
 			return false;
 		if (!valid_col(col))
 			return false;
-		
+
 		lcd.setCursor(col, row);
 		return true;
 	}
