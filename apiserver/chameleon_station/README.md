@@ -11,7 +11,7 @@ This is a powerful card manager which should be placed at the information desk o
 [Python interface to Tcl/Tk](https://docs.python.org/3/library/tkinter.html) is a standard Python module. However, you may have to install something like this to continue:
 
 ```bash
-sudo apt install ptyhon3-tk
+sudo apt install python3-tk
 ```
 
 Test with the following command:
