@@ -1,3 +1,4 @@
+#include "master_config.h"
 #include "card.h"
 #include "serial.h"
 
