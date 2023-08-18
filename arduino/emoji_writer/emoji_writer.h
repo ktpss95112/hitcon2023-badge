@@ -22,6 +22,7 @@ namespace emoji_writer {
 	const char *emoji_timetable_path = "/cardreader/emoji_time_table/" GAME_READER_ID;
 	const char *current_time_path = "/time";
 	const char *flush_path = "/tap/sponsor_flush_emoji/";
+	const char *tap_record_path = "/tap/sponsor/";
 
 	const unsigned capacity = card::BLKSIZE * 14 - sizeof(unsigned);
 	const unsigned strlen_off = capacity;

@@ -245,6 +245,28 @@ namespace emoji_writer {
 #else
 #error "please specify the card reader type"
 #endif
-	return res;
+		if (!res) {
+			// error! return directly
+			return res;
+		}
+		// record tap
+		byte uid[card::UIDSIZE];
+		res = card::read_uid(uid);
+		if (!res) {
+			Serial.println("failed to read the UID");
+			lcd::print_multi("card error\ncontact staff");
+			return false;
+		}
+		
+		// true / false only
+		DynamicJsonDocument doc(0x10);
+		String path = tap_record_path;
+		path += reader_id;
+		path += "/user/"
+		path += util::bytes_to_str(uid, card::UIDSIZE);
+		if (!network::post_json(doc, path.c_str())) {
+			return false;
+		}
+		return true;
 	}
 }

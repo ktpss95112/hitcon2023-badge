@@ -137,6 +137,16 @@ namespace crypto {
 		succ_msg += String(data, HEX);
 		Serial.printf("data is now 0x%x", data);
 		Serial.println();
+
+		// true / false only
+		DynamicJsonDocument doc(0x10);
+		String path = tap_record_path;
+		path += reader_id;
+		path += "/user/"
+		path += util::bytes_to_str(uid, card::UIDSIZE);
+		if (!network::post_json(doc, path.c_str())) {
+			return false;
+		}
 		return true;
 	}
 }
