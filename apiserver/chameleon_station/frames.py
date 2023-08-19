@@ -161,7 +161,7 @@ class CommandFrame(ttk.LabelFrame):
     def _command_clear_screen(self):
         self.data = ""
         for callback in self.__scan_card_callback:
-            callback("", True)
+            callback("", False)
 
         self.__show_qrcode_button.state(["disabled"])
 
