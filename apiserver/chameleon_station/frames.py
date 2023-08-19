@@ -78,10 +78,10 @@ class CommandFrame(ttk.LabelFrame):
         self.__clear_emoji_button.grid(column=2, row=0)
         self.__clear_emoji_button.state(["disabled"])
 
-        self.__clear_emoji_button = ttk.Button(self)
-        self.__clear_emoji_button["text"] = "Clear Screen"
-        self.__clear_emoji_button["command"] = self._command_clear_screen
-        self.__clear_emoji_button.grid(column=3, row=0)
+        self.__clear_screen_button = ttk.Button(self)
+        self.__clear_screen_button["text"] = "Clear Screen"
+        self.__clear_screen_button["command"] = self._command_clear_screen
+        self.__clear_screen_button.grid(column=3, row=0)
 
         self.__scan_card_callback: list[Callable] = []
         self._set_scan_card_callback(self.__change_button_state)
@@ -667,6 +667,9 @@ class _EditorGameInspectorFrame(ttk.Frame):
             self.__popcat_inspector_frame._scan_card_callback(data, success)
             self.__crypto_inspector_frame._scan_card_callback(data, success)
 
+    def _get_emoji_str(self):
+        return self.__emoji_inspector_frame._emoji_str
+
 
 class _EditorGameEmojiInspectorFrame(ttk.LabelFrame):
     def __init__(self, parent: Misc, hex_view_frame: _EditorHexViewFrame):
@@ -748,6 +751,12 @@ Field: Content = {emoji_str}
 """.replace(
             "\x00", ""
         )
+
+        self.__emoji_str = emoji_str if emoji_len != -1 else ""
+
+    @property
+    def _emoji_str(self):
+        return self.__emoji_str
 
     def _scan_card_callback(self, data: bytes, success: bool):
         if success:
