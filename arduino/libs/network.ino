@@ -42,6 +42,11 @@ namespace network {
 
 		String data = get_string(path);
 
+		if (data.length() <= 0) {
+			Serial.println("empty data");
+			return false;
+		}
+
 		json_error = deserializeJson(doc, data);
 		if (json_error) {
 			Serial.printf(
@@ -67,6 +72,9 @@ namespace network {
 
 		https.begin(wifi_client, host, host_port, path);
 
+		if (payload == "null") {
+			payload = "{}";
+		}
 		status_code = https.POST(payload);
 		payload = https.getString();
 		Serial.printf("status code %d", status_code);
