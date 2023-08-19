@@ -93,10 +93,12 @@ namespace lcd {
 			return false;
 
 		clear();
-		if (n1)
+		if (n1 > 0) {
 			res &= print(0, line);
-		if (n2)
+		}
+		if (n2 > 0) {
 			res &= print(1, msg + line.length() + 1);
+		}
 
 		return res;
 	}
