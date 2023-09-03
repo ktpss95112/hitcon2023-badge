@@ -2,7 +2,7 @@
 
 * `chameleon`: arduino for chameleon station
 * `crypto`: only functionalities of crypto game
-* `dino_run`: legacy testing code, not in use
+* `dino_run`: dino_run for arduino code, and dino_pc as pc end, receiving singals from arduino. old_python is legacy testing code, not in use.
 * `emoji_crypto`: sponsor reader should have functionalities of crypto game according to the settings of HITCON 2023, so it has both emoji and crypto
 * `emoji_writer`: only functionalities of emoji game, and can be used as writer, flusher, and eraser
 * `initialized_card`: arduino for initialize the card and a python socket server for accumulating the UIDs
