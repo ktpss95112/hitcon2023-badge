@@ -1,10 +1,23 @@
+/*
+ * BOARD MODEL CONFIGURATION
+ * This library is made for Wemos D1 R1 / R2 boards.
+ * If you have a different board, please define the IO ports for each libraries.
+ */
 #define D1R2
 // #define D1R1
 
+/*
+ * NETWORK CONFIGURATION
+ * The SSID / password of the wifi AP, along with the hostname of the board.
+ */
 #define WIFI_SSID "<redacted>"
 #define WIFI_PASSWD "<redacted>"
 #define WIFI_HOSTNAME "<redacted>"
 
+/*
+ * BOARD-SPECIFIC CONFIGURATION
+ * Refer to README.md for more information.
+ */
 #define DEVCORE
 #define GAME_READER_ID "s1"
 #define WRITER
@@ -67,13 +80,34 @@
 
 // #define GAME_READER_ID "p2"
 
-#define RANDOM_SEED "<redacted>"
+/*
+ * Random seed for the crypto game
+ */
+#define RANDOM_SEED 0xdeadbeef
+
+/*
+ * Time between each clock syncs.
+ * Shorter interval increases the overhead and the accuracy.
+ */
 #define CLOCK_SYNC_INTERVAL 100
 
+/*
+ * Server and port of the server.
+ */
 #define GAME_HOST "www.redacted.com"
 #define GAME_HOST_PORT 443
+/*
+ * Certificate fingerprint of the server
+ */
 #define GAME_HOST_FINGERPRINT "87:87:87:87:87:87:87:87:87:87:87:87:87:87:87:87:87:87:87:87"
+/*
+ * The game uses SSL client certificate to authenticate the boards.
+ */
 #define GAME_CLIENT_CERT "-----BEGIN CERTIFICATE-----\n...-----END CERTIFICATE-----\n"
 #define GAME_CLIENT_KEY "-----BEGIN PRIVATE KEY-----\n...-----END PRIVATE KEY-----\n"
 
+/*
+ * HMAC key for the crypto game in case the participant
+ * wants to tamper with the card.
+ */
 #define GAME_HMAC_KEY {0xe0, 0x72, 0x77, 0x6f, 0x57, 0x99, 0x6c, 0x89}
