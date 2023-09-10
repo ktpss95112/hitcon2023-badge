@@ -55,5 +55,9 @@ class Config:
     )
     # fmt: on
 
+    # TODO: add button in CommandFrame to flush emoji to dashboard
+    FLUSH_EMOJI_ENABLED = True
+    FLUSH_EMOJI_API = "http://localhost:5000/tap/sponsor_flush_emoji/sf1/user/"
+
 
 config = Config()
