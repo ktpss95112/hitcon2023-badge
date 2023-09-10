@@ -70,6 +70,10 @@ namespace crypto {
 		return src + 1;
 	}
 #elif defined ROR
+	/*
+	 * Take the last 5 bits as the number of bits to shift,
+	 * then perform a right shift.
+	 */
 	static uint32_t update_data(uint32_t src) {
 		uint32_t r = src & 0b11111;
 		uint32_t mask_r = (0xffffffff >> r) << r;
@@ -77,10 +81,16 @@ namespace crypto {
 		return ((src & mask_r) >> r) | ((src & mask_another) << (32-r));
 	}
 #elif defined SWAP_HILO
+	/*
+	 * Swap the highest 16 bits and the lowest 16 bits.
+	 */
 	static uint32_t update_data(uint32_t src) {
 		return ((src & 0xffff0000) >> 16) | ((src & 0xffff) << 16);
 	}
 #elif defined RAND_FLIP
+	/*
+	 * Flip two random bits.
+	 */
 	static uint32_t update_data(uint32_t src) {
 		int bit1 = random(0, 32);
 		int bit2 = random(0, 31);
@@ -143,7 +153,6 @@ namespace crypto {
 		Serial.printf("data is now 0x%x", data);
 		Serial.println();
 
-		// true / false only
 		if (send_tap_record) {
 			DynamicJsonDocument doc(0x10);
 			String path = tap_record_path;

@@ -1,6 +1,19 @@
 #!/usr/bin/python -i
+
+"""
+This is the Python client of the chameleon station.
+It is able to perform all card R/W and UID modification.
+Please refer to README.md for the usage and protocol.
+"""
+
 import serial
 arduino = serial.Serial('/dev/ttyUSB0')
+
+def example():
+    init()
+    read(1)
+    write(1, b'cafebabedeadbeef')
+    write_uid(b'\xde\xca\xf0\xa0')
 
 def __readline():
     line = arduino.readline().lstrip(b'\x00')
@@ -50,17 +63,11 @@ def write_uid(data: bytes):
     arduino.write(data + b'\n')
     print(arduino.readline())
 
-def example():
-    init()
-    read(1)
-    write(1, b'cafebabedeadbeef')
-    write_uid(b'\xde\xca\xf0\xa0')
-
 if __name__ == '__main__':
     import sys
     args_to_python = sys.orig_argv[:len(sys.argv)+1]
 
     if '-i' not in args_to_python:
         print(f'Usage: python3 -i {__file__}', file=sys.stderr)
-        print(f'Usage: {__file__}')
+        print(f'Usage: {__file__}', file=sys.stderr)
         exit(1)

@@ -6,6 +6,9 @@ namespace util {
 			return hex + '0';
 	}
 
+	/*
+	 * Turn a raw byte array into a hexadecimal string.
+	 */
 	String bytes_to_str(byte *bytes, int size) {
 		String res;
 
@@ -20,6 +23,9 @@ namespace util {
 		return res;
 	}
 
+	/*
+	 * Transform ISO 8601 string to epoch.
+	 */
 	time_t str_to_epoch(const char *str, const char *fmt) {
 		tm datetime {0};
 		strptime(str, fmt, &datetime);

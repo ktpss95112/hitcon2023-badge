@@ -1,4 +1,4 @@
-#include "master_config.h"
+#include "config.h"
 #include "card.h"
 #include "serial.h"
 
@@ -7,20 +7,24 @@ void setup() {
 	card::setup();
 }
 
-void reset() {
+/*
+ * Initialize the card reader.
+ */
+void initialize() {
 	card::done();
 	serial::init();
 }
 
-void invalid_command(String &command) {
-	static const String msg = "invalid command ";
-	serial::error(msg + command);
-}
-
+/*
+ * Check whether the block ID is valid.
+ */
 bool valid_block(int blkid) {
 	return blkid >= 0 && blkid < card::BLKCNT;
 }
 
+/*
+ * Read a block from the card.
+ */
 void read_block(int blkid) {
 	static const String no_card = "card not found or invalid";
 	static const String bad_id = "invalid block ID ";
@@ -109,7 +113,7 @@ void read_uid() {
 void loop() {
 	String command = serial::readline();
 	if (command == "INIT")
-		reset();
+		initialize();
 	else if (command == "READ")
 		read_block(serial::read_int());
 	else if (command == "WRITE")
@@ -119,5 +123,5 @@ void loop() {
 	else if (command == "WRITE_UID")
 		write_uid();
 	else
-		invalid_command(command);
+		serial::error(bad_command + command)
 }

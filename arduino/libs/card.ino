@@ -11,6 +11,11 @@ namespace card {
 		Serial.println(F("Done."));
 	}
 
+	/*
+	 * Checks whether we can read a new card.
+	 * If the previous card wasn't removed from the reader, this function
+	 * returns false.
+	 */
 	bool legal_new_card() {
 		MFRC522::PICC_Type picc_type;
 
@@ -78,6 +83,9 @@ namespace card {
 		return false;
 	}
 
+	/*
+	 * Read the entire block if the address is legal.
+	 */
 	bool read_block(byte *buf, int blockaddr) {
 		if (!auth_b(blockaddr))
 			return false;
@@ -86,6 +94,8 @@ namespace card {
 
 	/*
 	 * Same as `pread` in libc, but without `fildes`.
+	 * This function treats the card's memory as a large contiguous block
+	 * so we don't have to worry about the authentication blocks in the middle.
 	 */
 	int pread(byte *buf, int nbyte, int offset) {
 		bool res;
@@ -135,6 +145,9 @@ namespace card {
 		return status == MFRC522::STATUS_OK;
 	}
 
+	/*
+	 * Write to a block if the address is legal.
+	 */
 	bool write_block(byte *buf, int blockaddr) {
 		if (!auth_b(blockaddr))
 			return false;
@@ -143,6 +156,8 @@ namespace card {
 
 	/*
 	 * Same as `pwrite` in libc but without `fildes`.
+	 * This function treats the card's memory as a large contiguous block
+	 * so we don't have to worry about the authentication blocks in the middle.
 	 */
 	int pwrite(byte *buf, int nbyte, int offset) {
 		bool res;
@@ -171,11 +186,18 @@ namespace card {
 		return nbyte - remaining;
 	}
 
+	/*
+	 * Doesn't perform any interactions with the card.
+	 * Automatically read the UID from the local cache.
+	 */
 	bool read_uid(byte *buf) {
 		memcpy(buf, &mfrc522.uid.uidByte, UIDSIZE);
 		return true;
 	}
 
+	/*
+	 * Wrapper function for changing the card UID.
+	 */
 	bool write_uid(byte *uid) {
 		byte buf[BLKSIZE];
 		int i;
@@ -199,11 +221,20 @@ namespace card {
 		return res;
 	}
 
+	/*
+	 * Halt the communication with the card.
+	 * This function is required after every card-related operation.
+	 */
+
 	void done() {
 		mfrc522.PICC_HaltA();
 		mfrc522.PCD_StopCrypto1();
 	}
 
+	/*
+	 * A more flexible version of initiating the conversation.
+	 * Doesn't care whether the card is new or not.
+	 */
 	bool reset() {
 		byte bufferATQA[2];
 		byte buffer_size = sizeof(bufferATQA);
