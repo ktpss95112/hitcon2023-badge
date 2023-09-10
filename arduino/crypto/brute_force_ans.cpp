@@ -140,7 +140,8 @@ int main() {
       }
       nstep++;
     }
-    if (nstep >= 12) // limit step
+    // limit the number of step
+    if (nstep >= 12)
       break;
   }
 }
