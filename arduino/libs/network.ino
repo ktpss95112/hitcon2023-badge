@@ -63,25 +63,21 @@ namespace network {
 	bool post_json(DynamicJsonDocument &doc, const char *path) {
 		String payload;
 		HTTPClient https;
-		int status_code;
+		int status_code = -1;
 		DeserializationError json_error;
 
 		serializeJson(doc, payload);
-		Serial.println("posting:");
-		Serial.println(payload);
-
-		https.begin(wifi_client, host, host_port, path);
-
 		if (payload == "null") {
+			/* no null allowed */
 			payload = "{}";
+		}
+
+		if (!https.begin(wifi_client, host, host_port, path)) {
+			return false;
 		}
 		status_code = https.POST(payload);
 		payload = https.getString();
-		Serial.printf("status code %d", status_code);
-		Serial.println();
-		Serial.println("content:");
-		Serial.println(payload);
-
+		
 		json_error = deserializeJson(doc, payload);
 		if (json_error) {
 			Serial.printf(

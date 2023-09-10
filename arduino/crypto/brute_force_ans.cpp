@@ -125,14 +125,13 @@ int main() {
     for (int i = 0; i < sz; i++) {
       f = q.front();
       q.pop();
+      // have fun with a random-flip-two-bits machine!
       if (__builtin_popcount(f) == 2) {
         bt(f);
         all--;
       }
       for (int j = 0; j < FUNC_N; j++) {
         nxt = funcs[j](f);
-        // printf("f[%d](%u) = %u\n", j, f, nxt);
-        // fflush(stdout);
         if (step[nxt] != 0u)
           continue;
         step[nxt] = nstep;
@@ -141,7 +140,7 @@ int main() {
       }
       nstep++;
     }
-    if (nstep >= 12)
+    if (nstep >= 12) // limit step
       break;
   }
 }
