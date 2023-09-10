@@ -68,7 +68,7 @@ namespace network {
 
 		serializeJson(doc, payload);
 		if (payload == "null") {
-			/* no null allowed */
+			/* no null allowed on our server :( */
 			payload = "{}";
 		}
 
