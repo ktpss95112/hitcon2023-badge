@@ -1,6 +1,6 @@
 [project]
 name = "apiserver"
-version = "0.0.0"
+version = "1.0.0"
 description = "HITCON 2023 badge server"
 authors = [
     {name = "HITCON CMT 2023", email = "service@hitcon.org"},

@@ -3,8 +3,10 @@
 ## Environment
 
 * Python 3.10.6
+* [pdm](https://pdm.fming.dev/latest/#recommended-installation-method) 2.8.2
+
+deprecated:
 * [virtualenv](https://virtualenv.pypa.io/en/latest/installation.html) 20.23.0
-* [pdm](https://pdm.fming.dev/latest/#recommended-installation-method)
 
 ## Run
 
@@ -19,6 +21,9 @@ pdm run dev
 
 # run staging server
 pdm run staging
+
+# run production server
+pdm run prod
 ```
 
 ## Dev
@@ -30,13 +35,19 @@ pdm add xxx
 # formatter
 pdm run lint
 
+# pytest
+pdm run test
+
 # run any python scripts
 pdm run python xxx.py
 ```
 
 ## Optional Commands
+
+Please refer to `pyproject.toml` for all the available commands. (`pdm run create-db`, `pdm run build-docs`, ...)
+
 ```bash
-# enter virtual env (you don't need to)
+# enter virtual env (but generally you don't need to)
 eval `pdm venv activate`
 
 # generate requirements.txt
