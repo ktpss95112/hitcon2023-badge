@@ -179,7 +179,7 @@ class MongoDB(DB):
         obj = self.__user_table.find_one({"card_uid": card_uid})
         if obj is None:
             return None
-        return User.parse_obj(obj)
+        return User.model_validate(obj)
 
     async def write_user(self, user: User):
         self.__user_table.replace_one(
@@ -190,7 +190,7 @@ class MongoDB(DB):
         obj = self.__card_reader_table.find_one({"id": reader_id})
         if obj is None:
             return None
-        return CardReader.parse_obj(obj)
+        return CardReader.model_validate(obj)
 
     async def write_reader(self, reader: CardReader):
         self.__card_reader_table.replace_one(
@@ -198,7 +198,9 @@ class MongoDB(DB):
         )
 
     async def get_all_reader(self) -> list[CardReader]:
-        return [CardReader.parse_obj(obj) for obj in self.__card_reader_table.find()]
+        return [
+            CardReader.model_validate(obj) for obj in self.__card_reader_table.find()
+        ]
 
     async def new_popcat(self, record: PopcatRecord):
         self.__popcat_record_table.insert_one(dict(record))
@@ -227,13 +229,13 @@ class MongoDB(DB):
     async def get_all_popcat_by_user(self, user: User) -> list[PopcatRecord]:
         return list(
             map(
-                PopcatRecord.parse_obj,
+                PopcatRecord.model_validate,
                 self.__popcat_record_table.find({"card_uid": user.card_uid}),
             )
         )
 
     async def get_all_popcat(self) -> list[PopcatRecord]:
-        return list(map(PopcatRecord.parse_obj, self.__popcat_record_table.find()))
+        return list(map(PopcatRecord.model_validate, self.__popcat_record_table.find()))
 
     async def del_all_popcat(self):
         self.__popcat_record_table.drop()
@@ -260,13 +262,15 @@ class MongoDB(DB):
     async def get_all_dinorun_by_user(self, user: User) -> list[DinorunRecord]:
         return list(
             map(
-                DinorunRecord.parse_obj,
+                DinorunRecord.model_validate,
                 self.__dinorun_record_table.find({"card_uid": user.card_uid}),
             )
         )
 
     async def get_all_dinorun(self) -> list[DinorunRecord]:
-        return list(map(DinorunRecord.parse_obj, self.__dinorun_record_table.find()))
+        return list(
+            map(DinorunRecord.model_validate, self.__dinorun_record_table.find())
+        )
 
     async def del_all_dinorun(self):
         self.__dinorun_record_table.drop()
@@ -275,12 +279,12 @@ class MongoDB(DB):
         self.__tap_record_table.insert_one(dict(record))
 
     async def get_all_tap_record(self) -> list[TapRecord]:
-        return list(map(TapRecord.parse_obj, self.__tap_record_table.find()))
+        return list(map(TapRecord.model_validate, self.__tap_record_table.find()))
 
     async def get_tap_record_by_user(self, user: User) -> list[TapRecord]:
         return list(
             map(
-                TapRecord.parse_obj,
+                TapRecord.model_validate,
                 self.__tap_record_table.find({"card_uid": user.card_uid}),
             )
         )
@@ -288,7 +292,7 @@ class MongoDB(DB):
     async def get_tap_record_by_reader(self, reader: CardReader) -> list[TapRecord]:
         return list(
             map(
-                TapRecord.parse_obj,
+                TapRecord.model_validate,
                 self.__tap_record_table.find({"reader_id": reader.id}),
             )
         )
@@ -298,7 +302,7 @@ class MongoDB(DB):
     ) -> list[TapRecord]:
         return list(
             map(
-                TapRecord.parse_obj,
+                TapRecord.model_validate,
                 self.__tap_record_table.find(
                     {"card_uid": user.card_uid, "reader_id": reader.id}
                 ),
@@ -311,7 +315,7 @@ class MongoDB(DB):
     async def get_all_emoji(self) -> list[EmojiRecord]:
         return list(
             map(
-                EmojiRecord.parse_obj,
+                EmojiRecord.model_validate,
                 self.__emoji_record_table.find(),
             )
         )
@@ -329,7 +333,7 @@ class MongoDB(DB):
     async def get_all_crypto_redeem(self) -> list[CryptoRedeemRecord]:
         return list(
             map(
-                CryptoRedeemRecord.parse_obj,
+                CryptoRedeemRecord.model_validate,
                 self.__crypto_redeem_table.find(),
             )
         )
