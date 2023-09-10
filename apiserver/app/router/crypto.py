@@ -23,6 +23,7 @@ async def get_record_by_user_and_date(
     return await db.get_crypto_redeem_by_user_and_date(user, date)
 
 
+# TODO: pytest, better url, clearer use cases
 @router.post("/user/{card_uid}/date/{date}")
 async def redeem_award(user: GetUserDep, db: DBDep, date: ActivityDate) -> bool:
     record = await db.get_crypto_redeem_by_user_and_date(user, date)

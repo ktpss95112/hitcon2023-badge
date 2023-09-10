@@ -4,7 +4,7 @@ from enum import Enum
 from fastapi import APIRouter
 
 from ..dependency import DBDep, GetReaderDep
-from ..model import CardReader, TapRecord
+from ..model import CardReader
 
 router = APIRouter(
     prefix="/cardreader",

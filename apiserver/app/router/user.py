@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
 from ..dependency import DBDep, GetUserDep
-from ..model import TapRecord, User
+from ..model import User
 
 router = APIRouter(
     prefix="/user",
