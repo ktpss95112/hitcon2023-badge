@@ -166,6 +166,9 @@ class CommandFrame(ttk.LabelFrame):
         self.__show_qrcode_button.state(["disabled"])
 
 
+# TODO: new command: redeem prize
+
+
 class ProgressWindow(Toplevel):
     def __init__(self, parent: Misc) -> None:
         super().__init__(parent)
@@ -629,6 +632,8 @@ class _EditorInspectWriteUIDFrame(ttk.LabelFrame):
         self.__command_frame._command_scan_card()
 
     def __update_input_box(self, data: bytes, success: bool):
+        if not success:
+            self.__strvar.set("")
         if len(data) < 4:
             return
         self.__strvar.set(" ".join(f"{byte:02x}" for byte in data[:4]))
@@ -662,10 +667,9 @@ class _EditorGameInspectorFrame(ttk.Frame):
         command_frame._set_scan_card_callback(self._scan_card_callback)
 
     def _scan_card_callback(self, data: bytes, success: bool):
-        if success:
-            self.__emoji_inspector_frame._scan_card_callback(data, success)
-            self.__popcat_inspector_frame._scan_card_callback(data, success)
-            self.__crypto_inspector_frame._scan_card_callback(data, success)
+        self.__emoji_inspector_frame._scan_card_callback(data, success)
+        self.__popcat_inspector_frame._scan_card_callback(data, success)
+        self.__crypto_inspector_frame._scan_card_callback(data, success)
 
     def _get_emoji_str(self):
         return self.__emoji_inspector_frame._emoji_str
@@ -726,18 +730,9 @@ class _EditorGameEmojiInspectorFrame(ttk.LabelFrame):
             emoji_str_raw_hex = "".join(
                 [chunk_tag.in_text(text) for chunk_tag in self.__emoji_tags]
             )
-            emoji_str_raw = bytes.fromhex(emoji_str_raw_hex)
+            emoji_str_raw = bytes.fromhex(emoji_str_raw_hex)[:emoji_len]
 
-            # extract the valid part
-            end = len(emoji_str_raw)
-            while True:
-                try:
-                    emoji_str = emoji_str_raw[:end].decode()[:emoji_len]
-                    break
-                except UnicodeDecodeError as e:
-                    end = e.start
-            if len(emoji_str) != emoji_len:
-                emoji_str = "<error>"
+            emoji_str = emoji_str_raw.decode()
 
         except Exception as e:
             emoji_len = -1
@@ -759,8 +754,8 @@ Field: Content = {emoji_str}
         return self.__emoji_str
 
     def _scan_card_callback(self, data: bytes, success: bool):
+        self.__setup_emoji_tags()
         if success:
-            self.__setup_emoji_tags()
             self.__update_emoji_label()
 
 
