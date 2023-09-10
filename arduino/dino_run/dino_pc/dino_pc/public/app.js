@@ -78,7 +78,6 @@ function cardEventHandler(data, runner) {
 
 function gameOver(distanceRan) {
   const score = Math.ceil(distanceRan);
-  // the api get score from query now, is that a bug?
   if (window.cardUid) {
     fetch(`/proxy/dinorun/${window.cardUid}?score=${score}`, {
       method: "POST",
