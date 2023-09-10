@@ -49,25 +49,6 @@ This is the server which process all the game event. It would be accessed by all
     * 每日分數排名最高的 8 位和最低的 2 位，共 2 日（同分則增額給予獎品）
 
 
-<!--(也許標題可以改成「打怪獸」或是「收割」之類的，配一點小故事)
-* 遊戲機制：
-    * 每 x 秒可以刷一次，掃1下次數+1
-    *  x 可以隨時間變化，例如第一天是 5min，第二天是 2min，第三天前半段是 1min，後半段是 30min 之類的
-    * 玩家可調整數值，最多可調到掃1次+1~100 （不可以設定成負值），若數值超過會變成負值（最多-100）
-    * （貓貓分數和emiji連動）
-* Ranking
-    * all time ranking
-    * every day ranking
-    * every 1hr ranking
-* 遊戲畫面（小螢幕顯示）
-    * 玩家結果/ 單人最高紀錄
-    * 玩家所屬的組別結果/ 最高分數組別結果
-    * CD還有X分鐘
-* 工作分配
-    *
-    * 密碼學（設計東西有多好改）
--->
-
 ### 遊戲二：跑跑！駭客貓
 （內部 code name: dinorun）
 
