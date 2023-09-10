@@ -5,7 +5,7 @@
 
 namespace buzz {
 #ifdef D1R1
-#error "TODO; define the IO pin in buzz.h"
+	const int IO_PIN = D8;
 #elif defined D1R2
 	const int IO_PIN = D3;
 #else
