@@ -68,7 +68,7 @@ def test_popcat():
             assert rj == score
             resp = client.get(f"/popcat/{user.card_uid}/record")
             assert resp.status_code == 200
-            record = PopcatRecord.parse_obj(resp.json()[0])
+            record = PopcatRecord.model_validate(resp.json()[0])
             assert record.card_uid == user.card_uid
             assert record.incr == score
 
@@ -135,7 +135,7 @@ def test_dinorun():
             rj = resp.json()
             assert len(rj) == users[: i + 1].count(user)
             assert all(
-                DinorunRecord.parse_obj(record).card_uid == user.card_uid
+                DinorunRecord.model_validate(record).card_uid == user.card_uid
                 for record in rj
             )
 
@@ -279,7 +279,7 @@ def test_emoji():
             resp = client.get(f"/emoji")
             assert resp.status_code == 200
             assert len(resp.json()) == len_ + 1
-            assert all(EmojiRecord.parse_obj(record) for record in resp.json())
+            assert all(EmojiRecord.model_validate(record) for record in resp.json())
             len_ += 1
 
 
@@ -314,7 +314,7 @@ def test_crypto():
         for user, date in zip(users, dates):
             resp = client.get(f"/crypto/user/{user.card_uid}/date/{date}")
             assert resp.status_code == 200
-            record = CryptoRedeemRecord.parse_obj(resp.json())
+            record = CryptoRedeemRecord.model_validate(resp.json())
             assert record.card_uid == user.card_uid
             assert record.date == date
 
@@ -322,7 +322,7 @@ def test_crypto():
         assert resp.status_code == 200
         rj = resp.json()
         all_key = set((user.card_uid, date) for user, date in zip(users, dates))
-        for record in map(CryptoRedeemRecord.parse_obj, rj):
+        for record in map(CryptoRedeemRecord.model_validate, rj):
             all_key.remove((record.card_uid, record.date))
         assert len(all_key) == 0
 
