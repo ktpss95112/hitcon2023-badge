@@ -24,6 +24,11 @@ pdm run staging
 
 # run production server
 pdm run prod
+
+# run scripts in script/
+# example:
+#   pdm run python -m script.create_db
+pdm run python -m script.FILENAME_WITHOUT_PY
 ```
 
 ## Dev
