@@ -1,10 +1,3 @@
-"""
-TODO: features
-* scan card (arduino)
-* modify card content arbitrarily (arduino)
-* modify card content (for a specific game)
-"""
-
 from tkinter import *
 from tkinter import ttk
 

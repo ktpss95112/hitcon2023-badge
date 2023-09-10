@@ -243,7 +243,9 @@ class _EditorHexViewFrame(ttk.Frame):
     """
         Looks like:
     ```
-    sector block  0  1  2  3 ... 14 15
+           chunk _____0_____ ... _____
+            byte  0  1  2  3 ... 14 15
+    sector block
        0     0   de ad be ef ... 00 00
              1   40 41 42 43 ... 00 44
              2   40 41 42 43 ... 00 44
