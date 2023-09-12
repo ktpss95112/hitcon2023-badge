@@ -1,4 +1,4 @@
-# hitcon2023-badge
+# hitcon2023-badge (HITCON CMT 2023)
 
 * Official document: [link](https://docs.google.com/document/d/1-b-IGACYCKCki-YTx9WcoPfhuFjb6nA6ySIB4u-Rhjk/edit?usp=sharing)
 * Team members:
